@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="telemetry_analysis_styling.css"/>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+  </head>
+
+  <body>
+
+    <div class="card">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="../resources/boop.jpg" class="card-img-top logo" alt="...">
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+              <h3 class="card-title">Telemetry Analysis</h3>
+              <p class="card-text">Here is what the bot thinks of this site. This includes information about 1st and 3rd party trackers and analytics </p>
+
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title" id="current-website-url"></h5>
+                  <strong>Number of times visiting this site - <span class="badge bg-primary">0</span></strong><br/>
+                  <strong>Number of ads on the page - <span class="badge bg-primary">0</span></strong>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="row g-0">
+        <div class="col-md-12">
+          <div id="error-content" class="alert alert-primary d-none" role="alert">
+            A simple primary alert—check it out!
+          </div>
+        </div>
+      </div>
+
+      <div class="row row-accordion g-0 mb-4">
+        <div class="col-md-12">
+
+          <div class="accordion" id="popup-choices">
+
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="first-party-header">
+                <button id="first-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#first-party-list" aria-expanded="false" aria-controls="first-party-list">
+                  <div><span id="first-party-count" class="badge bg-secondary">4</span> - 1st Party Cookies</div>
+                </button>
+              </h2>
+                <div id="first-party-list" class="accordion-collapse collapse" aria-labelledby="first-party-header" data-bs-parent="#popup-choices">
+                  <div class="accordion-body ms-4">
+                  </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="third-party-header">
+                <button id="third-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#third-party-list" aria-expanded="false" aria-controls="third-party-list">
+                  <div><span id="third-party-count" class="badge bg-secondary">4</span> - 3rd Party Cookies</div>
+                </button>
+              </h2>
+              <div id="third-party-list" class="accordion-collapse collapse" aria-labelledby="third-party-header" data-bs-parent="#popup-choices">
+                <div class="accordion-body ms-4">
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="popular-trackers-header">
+                <button id="popular-trackers-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#popular-trackers-list" aria-expanded="false" aria-controls="popular-trackers-list">
+                  <div><span id="popular-trackers-count" class="badge bg-secondary">4</span> - Other sites with these trackers</div>
+                </button>
+              </h2>
+              <div id="popular-trackers-list" class="accordion-collapse collapse" aria-labelledby="popular-trackers-header" data-bs-parent="#popup-choices">
+                <div class="accordion-body ms-4">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <div class="row g-0">
+        <div class="col-md-12 d-grid">
+          <a class="btn btn-secondary reset">Clear Cookies on site</a>
+          <a class="btn btn-success reset">Go to dashboard</a>
+        </div>
+      </div>
+
+      <script src="telemetry_analysis_controller.js"></script>
+    </div>
+
+  </body>
+
+</html>

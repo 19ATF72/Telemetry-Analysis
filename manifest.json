@@ -1,0 +1,51 @@
+{
+
+  "manifest_version": 2,
+  "name": "Telemetry Analysis",
+  "version": "1.0",
+  "description": "Adds a browser action to analyse scripts & telemetry on the page.",
+  "homepage_url": "https://github.com/19ATF72/Telemetry-Analysis",
+
+  "icons": {
+    "48": "icons/elementor-brands.svg",
+    "96": "icons/elementor-brands.svg"
+  },
+
+  "permissions": [
+    "activeTab",
+    "cookies",
+    "<all_urls>",
+    "tabs"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.mozilla.org/*"],
+      "js": ["content_scripts/on_page_load.js"]
+    }
+  ],
+
+  "background": {
+    "scripts": ["background_scripts/dynamic_dao.js"]
+  },
+
+  "browser_action": {
+    "browser_style": true,
+    "default_icon": "icons/elementor-brands.svg",
+    "default_title": "Telemetry Analysis",
+    "default_popup": "popup/telemetry_analysis_template.html"
+  },
+
+  "web_accessible_resources": [
+    "resources/frog.jpg",
+    "resources/turtle.jpg",
+    "resources/snake.jpg"
+  ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "micah2.hobbymego@live.uwe.ac.uk"
+    }
+  }
+
+}
