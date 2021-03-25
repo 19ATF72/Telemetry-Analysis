@@ -14,8 +14,10 @@
   "permissions": [
     "activeTab",
     "cookies",
-    "<all_urls>",
-    "tabs"
+    "tabs",
+    "unlimitedStorage",
+    "storage",
+    "<all_urls>"
   ],
 
   "content_scripts": [
