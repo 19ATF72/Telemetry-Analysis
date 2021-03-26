@@ -12,8 +12,9 @@
   },
 
   "permissions": [
-    "activeTab",
+    "*://*/*",
     "cookies",
+    "activeTab",
     "tabs",
     "unlimitedStorage",
     "storage",
@@ -22,8 +23,8 @@
 
   "content_scripts": [
     {
-      "matches": ["*://*.mozilla.org/*"],
-      "js": ["content_scripts/on_page_load.js"]
+      "matches": [ "*://*/*" ],
+      "js": ["content_scripts/tracker_analysis_model.js"]
     }
   ],
 
@@ -32,7 +33,7 @@
   },
 
   "browser_action": {
-    "browser_style": true,
+    "browser_style": false,
     "default_icon": "icons/elementor-brands.svg",
     "default_title": "Telemetry Analysis",
     "default_popup": "browserAction/telemetry_analysis_template.html"

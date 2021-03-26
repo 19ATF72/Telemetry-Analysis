@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 
-<html>
+<html lang=en>
 
   <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="telemetry_analysis_styling.css"/>
+    <title>Telemetry Analysis popup</title>
+    <link rel="stylesheet" href="telemetry_analysis_styling.css">
   </head>
 
   <body>
-
     <div class="card">
       <div class="row g-0">
         <div class="col-md-4">
-          <img src="../resources/boop.jpg" class="card-img-top logo" alt="...">
+          <img src="../resources/boop.jpg" class="card-img-top logo" alt="..."></img>
         </div>
         <div class="col-md-8">
             <div class="card-body">
@@ -21,7 +21,7 @@
 
               <div class="card">
                 <div class="card-body">
-                  <h5 class="card-title" id="current-website-url"></h5>
+                  <h5 class="card-title" id="current-website-url">www.example.org</h5>
                   <strong>Number of times visiting this site - <span class="badge bg-primary">0</span></strong><br/>
                   <strong>Number of ads on the page - <span class="badge bg-primary">0</span></strong>
                 </div>
@@ -46,7 +46,7 @@
             <div class="accordion-item">
               <h2 class="accordion-header" id="first-party-header">
                 <button id="first-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#first-party-list" aria-expanded="false" aria-controls="first-party-list">
-                  <div><span id="first-party-count" class="badge bg-secondary">4</span> - 1st Party Cookies</div>
+                  <span><span id="first-party-count" class="badge bg-secondary">4</span> - 1st Party Cookies</span>
                 </button>
               </h2>
                 <div id="first-party-list" class="accordion-collapse collapse" aria-labelledby="first-party-header" data-bs-parent="#popup-choices">
@@ -58,7 +58,7 @@
             <div class="accordion-item">
               <h2 class="accordion-header" id="third-party-header">
                 <button id="third-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#third-party-list" aria-expanded="false" aria-controls="third-party-list">
-                  <div><span id="third-party-count" class="badge bg-secondary">4</span> - 3rd Party Cookies</div>
+                  <span><span id="third-party-count" class="badge bg-secondary">4</span> - 3rd Party Cookies</span>
                 </button>
               </h2>
               <div id="third-party-list" class="accordion-collapse collapse" aria-labelledby="third-party-header" data-bs-parent="#popup-choices">
@@ -70,7 +70,7 @@
             <div class="accordion-item">
               <h2 class="accordion-header" id="popular-trackers-header">
                 <button id="popular-trackers-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#popular-trackers-list" aria-expanded="false" aria-controls="popular-trackers-list">
-                  <div><span id="popular-trackers-count" class="badge bg-secondary">4</span> - Other sites with these trackers</div>
+                  <span><span id="popular-trackers-count" class="badge bg-secondary">4</span> - Other sites with these trackers</span>
                 </button>
               </h2>
               <div id="popular-trackers-list" class="accordion-collapse collapse" aria-labelledby="popular-trackers-header" data-bs-parent="#popup-choices">
@@ -91,8 +91,11 @@
         </div>
       </div>
 
-      <script src="telemetry_analysis_controller.js"></script>
     </div>
+
+  <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="telemetry_analysis_controller.js"></script>
 
   </body>
 

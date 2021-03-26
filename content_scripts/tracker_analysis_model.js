@@ -4,10 +4,12 @@
    * If this content script is injected into the same page again,
    * it will do nothing next time.
    */
+  console.log("hey");
   if (window.hasRun) {
     return;
   }
   window.hasRun = true;
+  console.log("ho");
 
   /**
    * Given a URL to a beast image, remove all existing beasts, then

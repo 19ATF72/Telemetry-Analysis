@@ -115,6 +115,7 @@
 function showCookiesForTab(tabs) {
   //get the first tab object in the array
   let tab = tabs.pop();
+  console.log(tab);
 
   //get all cookies in the domain
   var gettingAllCookies = browser.cookies.getAll({url: tab.url});
@@ -158,12 +159,8 @@ function showCookiesForTab(tabs) {
     } else {
       let p = document.createElement("p");
       let content = document.createTextNode("No cookies in this tab.");
-      let parentFirst = firstCookieList.parentNode;
-      let parentThird = firstCookieList.parentNode;
 
       p.appendChild(content);
-      parentFirst.appendChild(p);
-      parentThird.appendChild(p);
     }
   });
 }
@@ -188,3 +185,9 @@ function getActiveTab() {
  }
 
 getActiveTab().then(showCookiesForTab);
+
+// function handleCreated(tab) {
+//   console.log(tab.id);
+// }
+//
+// browser.tabs.onCreated.addListener(handleCreated);
