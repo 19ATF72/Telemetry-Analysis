@@ -1,24 +1,3 @@
-// // DAO connection to database here
-// async function getPlatform() {
-//   var platformInfo = await browser.runtime.getPlatformInfo();
-//   var browserInfo = await browser.runtime.getBrowserInfo();
-//   //console.log(platformInfo);
-//   //console.log(browserInfo);
-// }
-// getPlatform()
-
-//
-// function logCookie(c) {
-//   console.log(c);
-// }
-//
-// function logError(e) {
-//   console.error(e);
-// }
-//
-// var setCookie = browser.cookies.set({ url: "https://developer.mozilla.org/" });
-// setCookie.then(logCookie, logError);
-
 /**
  * DynamicDao - Micah Hobby - 17027531
  *
@@ -42,6 +21,7 @@ class DynamicDao {
   static initSqlJs = window.initSqlJs;
   static localforage = window.localforage;
   static SQL = null;
+  static DB = null;
 
   /*
    * Helper Functions
@@ -123,12 +103,28 @@ class DynamicDao {
         // Run a query without reading the results
         //db.run("CREATE TABLE test (col1, col2);");
 
-        db.run("CREATE TABLE cookies (domain TEXT, expirationDate INTEGER, hostOnly INTEGER, name TEXT, value TEXT)");
+        db.run(`CREATE TABLE session (
+          hostname TEXT,
+          loggedDate INTEGER,
+          expirationDate INTEGER)`);
+
+        db.run(`CREATE TABLE cookies (
+          domain TEXT,
+          expirationDate INTEGER,
+          hostOnly INTEGER,
+          name TEXT,
+          value TEXT,
+          hostname INTEGER,
+          FOREIGN KEY(hostname) REFERENCES session(rowid))`);
 
         // Insert two rows: (1,111) and (2,222)
         //db.run("INSERT INTO test VALUES (?,?), (?,?), (?,?), (?,?), (?,?)", [1, 111, 2, 222, 3, 333, 4, 444, 5, 555]);
 
-        db.run("INSERT INTO cookies (domain, expirationDate, hostOnly, name, value) VALUES (?,?,?,?,?)", ['www.example.org', '1234', 'true', 'testCookie', 'testAgain']);
+        db.run("INSERT INTO session (hostname, loggedDate, expirationDate) VALUES (?,?,?)",
+          ['www.example.org', 1617482504750, 1617482504800]);
+
+        db.run("INSERT INTO cookies (domain, expirationDate, hostOnly, name, value, hostname) VALUES (?,?,?,?,?,?)",
+          ['www.example.org', '1234', 'true', 'testCookie', 'testAgain', 1]);
 
         //TODO: Modify this to get a text file with SLITE creating instructions
         //Use statement iterator to run the whole file in one go.
@@ -155,12 +151,13 @@ class DynamicDao {
   async retrieveDatabase() {
     try {
       //console.group("DynamicDao - retrieveDatabase");
-
+      console.log("RetrieveDATABASE");
       var loadDb = await DynamicDao.localforage.getItem(this.name);
 
       if (loadDb) {
         //console.log("DynamicDao - retrieveDatabase - db loaded from storage");
         //Load db from memory
+        //this.db = new DynamicDao.SQL.Database(this.toBinArray(loadDb));
         this.db = new DynamicDao.SQL.Database(this.toBinArray(loadDb));
         //console.log(db);
       } else {
@@ -205,7 +202,7 @@ class DynamicDao {
           //);
 
           rs = this.db.exec(statement['operation'] + ' ' + statement['query'],
-           statement['values']);
+            statement['values']);
           //console.log(rs);
           break;
         case 'INSERT':
@@ -216,14 +213,16 @@ class DynamicDao {
           //  statement['values']);
           // rs = this.db.getRowsModified();
           rs = this.db.exec(statement['operation'] + ' ' + statement['query'],
-           statement['values']);
-          //console.log(rs);
+            statement['values']);
+
+          // Getting ID of row returned by SQL
+          rs = rs[0].values[0][0];
           break;
         default:
           throw new Error("DynamicDao - agnosticQuery - Invalid operation");
       }
 
-      if(rs){
+      if (rs) {
         return rs;
       }
       throw new Error("DynamicDao - agnosticQuery - SQL operation failed");
@@ -232,7 +231,8 @@ class DynamicDao {
       throw (e)
     } finally {
       //Commit changes in SQL db to IndexedDB
-      await window.localforage.setItem(this.name, this.toBinString(this.db.export()));
+      //await window.localforage.setItem(this.name, this.toBinString(this.db.export()));
+      await this.persistDatabase();
       // stmt.free();
       // stmt.freemem();
       //db.close(); //TODO: Might remove once Class
@@ -278,38 +278,3 @@ class DynamicDao {
   }
 
 }
-
-
-// let statement = {
-//   'operation': "SELECT",
-//   'query': "* FROM cookies",
-// };
-//
-// let statement1 = {
-//   'operation': "SELECT",
-//   'query': "* FROM test WHERE col1 BETWEEN $start AND $end",
-//   'values': {
-//     '$start': 1,
-//     '$end': 5,
-//   }
-// };
-//
-// let statement2 = {
-//   'operation': "SELECT",
-//   'query': "* FROM test",
-// };
-//
-// let statement3 = {
-//   'operation': "INSERT",
-//   'query': "INTO test VALUES (?,?) RETURNING rowid",
-//   'values': [49, 49],
-// };
-
-// async function getLists():
-
-// let statement = {
-//   'operation': "SELECT",
-//   'query': "* FROM cookies",
-// };
-// result = await dynamicDao.agnosticQuery(statement);
-// console.log(result);

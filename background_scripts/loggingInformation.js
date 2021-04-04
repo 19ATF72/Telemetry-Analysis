@@ -9,17 +9,30 @@
  *
  * Contains hooks to events in the browser lifecycle with extension actions
  */
+class Session {
+  constructor(activeSites, expiredSites) {
+    if(activeSites) {
+      this.activeSites = activeSites;
+    } else {
+      this.activeSites = [];
+    }
 
-// NEEDS TO BE TURNED INTO CLASS
-const session = {
-  set current(site) {
-    this.log.push(site);
-  },
-  log: []
+    if(expiredSites) {
+      this.expiredSites = expiredSites;
+    } else {
+      this.expiredSites= [];
+    }
+  }
+
+  set activeHostname(site) {
+    this.activeSites.push(site);
+  }
+
+  set expiredHostname(site) {
+    this.expiredSites.push(site);
+  }
+
 }
-
-
-
 
   // Pseudocode for implementing no waste storing.
   // if (changeInfo.status === 'loading' && changeInfo.url != oldUrl) {
