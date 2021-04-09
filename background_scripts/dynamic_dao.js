@@ -84,26 +84,19 @@ class DynamicDao {
    * @return {boolean}    success         Returns outcome of the operation
    */
   static async createDatabase() {
-
     try {
       //console.group("DynamicDao - createDatabase");
-
       var loadDb = await DynamicDao.localforage.getItem(DynamicDao.name);
       //console.log("DynamicDao - createDatabase - localforage attempted retrieval");
-
       if (loadDb) {
         //console.log("DynamicDao - createDatabase - db loaded from storage");
         //Load db from memory
         var db = new DynamicDao.SQL.Database(DynamicDao.toBinArray(loadDb));
-        //console.log(db);
       } else {
         //console.log("DynamicDao - createDatabase - creating db");
         //Create the database
         var db = new DynamicDao.SQL.Database();
         //console.log(db);
-
-        // Run a query without reading the results
-        //db.run("CREATE TABLE test (col1, col2);");
 
         db.run(`CREATE TABLE session (
           hostname TEXT,
@@ -120,8 +113,6 @@ class DynamicDao {
           session_rowid INTEGER,
           FOREIGN KEY(session_rowid) REFERENCES session(rowid))`);
 
-        // Insert two rows: (1,111) and (2,222)
-        //db.run("INSERT INTO test VALUES (?,?), (?,?), (?,?), (?,?), (?,?)", [1, 111, 2, 222, 3, 333, 4, 444, 5, 555]);
         db.run("INSERT INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?)",
           ['www.active.org', 1617482504750, 1617999846494, 1]);
         db.run("INSERT INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?)",
@@ -135,7 +126,6 @@ class DynamicDao {
         db.run("INSERT INTO cookies (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?,?,?,?,?,?)",
           ['www.example1.org', '12341', 'true', 'testCookie1', 'testAgain11', 3]);
 
-
         //TODO: Modify this to get a text file with SLITE creating instructions
         //Use statement iterator to run the whole file in one go.
       }
@@ -144,7 +134,7 @@ class DynamicDao {
     } finally {
       // save
       await DynamicDao.localforage.setItem(this.name, DynamicDao.toBinString(db.export()));
-      db.close(); //TODO: Might remove once class.
+      db.close();
     }
     return true; //TODO: Might not need to return dead db instead just true?
   }
@@ -162,21 +152,16 @@ class DynamicDao {
     try {
       //console.group("DynamicDao - retrieveDatabase");
       var loadDb = await DynamicDao.localforage.getItem(DynamicDao.name);
-
       if (loadDb) {
         //console.log("DynamicDao - retrieveDatabase - db loaded from storage");
         //Load db from memory
-        //this.db = new DynamicDao.SQL.Database(this.toBinArray(loadDb));
-        //DynamicDao.DB = new DynamicDao.SQL.Database(DynamicDao.toBinArray(loadDb));
         loadDb = new DynamicDao.SQL.Database(DynamicDao.toBinArray(loadDb));
-        //console.log(db);
       } else {
         throw new Error("DynamicDao - retrieveDatabase - Cannot load database")
       }
     } catch (e) {
       throw (e);
     }
-
     //console.groupEnd();
     return loadDb;
   };
@@ -192,21 +177,11 @@ class DynamicDao {
    */
   static async agnosticQuery(statement) {
     try {
-
-      console.log(statement);
-      // var stmt = this.db.prepare(statement['operation'] + ' ' + statement['query'],
-      //   statement['values']);
+      //console.log(statement);
       var rs = DynamicDao.DB.exec(statement['operation'] + ' ' + statement['query'],
               statement['values']);
       switch (statement['operation']) {
         case 'SELECT':
-          // while (stmt.step()) { //
-          //   var row = stmt.getAsObject();
-          //   var row2 = stmt.get();
-          //   console.log('Here is a row: ' + JSON.stringify(row));
-          // }
-          // rs = "ASSIGN SOMEHOW" //TODO: figure out best way to return JSON
-
           //Might be useful for operating over select statement results.
           //db.each("SELECT name,age FROM users WHERE age >= $majority", {$majority:18},
           //    function (row){console.log(row.name + " is a grown-up.")}
@@ -214,12 +189,6 @@ class DynamicDao {
           break;
         case 'INSERT':
         case 'UPDATE':
-          //stmt.run();
-          // this.db.run(statement['operation'] + ' ' + statement['query'],
-          //  statement['values']);
-          // rs = this.db.getRowsModified();
-
-          // Getting ID of row returned by SQL
           if (rs.length) {
             rs = rs[0].values[0][0];
           } else {
@@ -228,24 +197,17 @@ class DynamicDao {
         case 'DELETE':
           //Get the amount of rows Removed
           //Or just return the rowid
+          // Getting ID of row returned by SQL
+          // rs = this.db.getRowsModified();
           break;
         default:
           throw new Error("DynamicDao - agnosticQuery - Invalid operation");
       }
-
-      //TODO: This should return inside the finally blocl
-      //throw new Error("DynamicDao - agnosticQuery - SQL operation failed");
     } catch (e) {
       console.error(e);
       throw (e)
     } finally {
       return rs;
-      //Commit changes in SQL db to IndexedDB
-      //await window.localforage.setItem(this.name, this.toBinString(this.db.export()));
-      //await this.persistDatabase();
-      // stmt.free();
-      // stmt.freemem();
-      //db.close(); //TODO: Might remove once Class
     }
   }
 
@@ -265,8 +227,9 @@ class DynamicDao {
     } catch (e) {
       throw (e);
       throw new Error("DynamicDao - retrieveDatabase - Could not persist DB")
+    } finally {
+      return true;
     }
-    return true;
   }
 
   /*
@@ -279,7 +242,6 @@ class DynamicDao {
   static async closeDatabase() {
     try {
       DynamicDao.DB.close();
-      //DynamicDao.DB = null;
     } catch (e) {
       throw (e);
       throw new Error("DynamicDao - closeDatabase - Closing database failed")

@@ -83,21 +83,20 @@ class Session {
         'values': [hostname, now, expires, 1],
       };
       rowid = await DynamicDao.agnosticQuery(insertHost);
-      //return rowid;
     } catch (e) {
       console.error(e);
-      //throw (e);
+      throw (e);
     } finally {
       return rowid;
     }
   }
 
   /*
-   * getExpiredSites()
+   * updateHost()
    *
    * performs query to retrieve expired sites from database that need to be cached
    *
-   * @return {ArrayList}     expiredSites      List of sites needing recache
+   * @return {Integer}     rowid      id of host updated
    */
   static async updateHost(hostId, now) {
     let rowid;
@@ -112,7 +111,7 @@ class Session {
       //return rowid;
     } catch (e) {
       console.error(e);
-      //throw (e);
+      throw (e);
     } finally {
       return rowid;
     }
@@ -133,48 +132,14 @@ class Session {
         'query': "rowid FROM session WHERE hostname = ?",
         'values': [hostname],
       };
-      // let getHost = {
-      //   'operation': "SELECT",
-      //   'query': "* FROM session WHERE rowid = 3",
-      // };
       rowid = await DynamicDao.agnosticQuery(getHost);
       rowid = rowid[0].values[0][0];
     } catch (e) {
       console.error(e);
-      //throw (e);
+      throw (e);
     } finally {
       return rowid;
     }
   }
 
-  // constructor(activeSites, expiredSites) {
-  //   if(activeSites) {
-  //     this.activeSites = activeSites;
-  //   } else {
-  //     this.activeSites = [];
-  //   }
-  //
-  //   if(expiredSites) {
-  //     this.expiredSites = expiredSites;
-  //   } else {
-  //     this.expiredSites= [];
-  //   }
-  // }
-
-  // set activeHostname(site) {
-  //   this.activeSites.push(site);
-  // }
-  //
-  // set expiredHostname(site) {
-  //   this.expiredSites.push(site);
-  // }
-
 }
-
-// Pseudocode for implementing no waste storing.
-// if (changeInfo.status === 'loading' && changeInfo.url != oldUrl) {
-//   //Do stuff
-//   console.log(tabInfo.url);
-//   console.log(changeInfo);
-//   console.log(tabInfo);
-// }

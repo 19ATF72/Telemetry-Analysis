@@ -10,18 +10,15 @@ class Site {
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
-   * @return {ArrayList}     activeSites      List of sites already crawled
+   * @return {ArrayList}     cookies      List of all cookies for site
    */
   static async getCookies(siteUrl) {
     let cookies = [];
     try {
-      //Get cookies set
-      // let details = {
-      //   'url': siteUrl,
-      // };
       let details = {
         'url': siteUrl,
       };
+      //Get cookies set
       cookies = await browser.cookies.getAll(details);
     } catch (e) {
       console.error(e);
@@ -32,11 +29,11 @@ class Site {
   }
 
   /*
-   * insertCookieToSite()
+   * insertCookie()
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
-   * @return {ArrayList}     activeSites      List of sites already crawled
+   * @return {ArrayList}     rowid      ids of cookies inserted
    */
   static async insertCookies(cookies, hostId) {
     let rowid = [];
@@ -64,14 +61,9 @@ class Site {
    *
    * Updates cookie table with new cookie values for site by hostname
    *
-   * @return {ArrayList}     activeSites      List of sites already crawled
+   * @return {ArrayList}     rowid      ids of cookies removed
    */
   static async removeCookies(hostId) {
-    // let removeCookies = {
-    //   'operation': "DELETE",
-    //   'query': "FROM cookies WHERE session_rowid = ? RETURNING rowid",
-    //   'values': [hostId],
-    // };
     let rowid = [];
     let removeCookies = {
       'operation': "DELETE",
