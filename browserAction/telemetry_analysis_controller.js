@@ -118,6 +118,7 @@ function showCookiesForTab(tabs) {
   console.log(tab);
 
   //get all cookies in the domain
+  console.log(tab.url);
   var gettingAllCookies = browser.cookies.getAll({url: tab.url});
   gettingAllCookies.then((cookies) => {
 

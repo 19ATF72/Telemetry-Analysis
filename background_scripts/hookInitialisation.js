@@ -13,6 +13,9 @@ browser.runtime.onStartup.addListener(handleStartup);
 //When user updates a tab with new URL
 browser.tabs.onUpdated.addListener(handleUpdated);
 
+//When cookie is updated
+// browser.cookies.onChanged.addListener(handleChanged);
+
 /*
  * Hook Functions
  *
@@ -33,61 +36,16 @@ async function handleInstall(details) {
 
     //Must be called before running any db methods
     DynamicDao.SQL = await DynamicDao.initSqlJs(DynamicDao.config);
+    DynamicDao.dbCreated = await DynamicDao.createDatabase();
+    DynamicDao.DB = await DynamicDao.retrieveDatabase();
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT
-
-    //Initialize DB
-    let dynamicDao = new DynamicDao('sqlite', null);
-
-    console.log(dynamicDao.db);
-
-    console.log("DD in Install");
-    console.log(DynamicDao.SQL);
-
-    await dynamicDao.createDatabase();
-    await dynamicDao.retrieveDatabase();
-    console.log(dynamicDao);
-
-    console.log(DynamicDao.DB);
-
-
     let now = Date.now(); // Unix timestamp in milliseconds
+    Session.activeSites = await Session.getActiveSites(now);
+    Session.expiredSites = await Session.getExpiredSites(now);
 
-    let session = new Session();
-    //DynamicDao.localforage.setItem('session', session);
-
-
-    //IMPORTANT
-    // let activeSites = {
-    //   'operation': "SELECT",
-    //   'query': "hostname FROM session WHERE expirationDate >= ?",
-    //   'values': [now]
-    // };
-    // activeSites = await dynamicDao.agnosticQuery(activeSites);
-    // //console.log(activeSites);
-    //
-    // if (activeSites[0]) {
-    //   activeSites[0].values.forEach((item, i) => {
-    //     session.activeHostname = item[0];
-    //   });
-    // }
-    //
-    // let expiredSites = {
-    //   'operation': "SELECT",
-    //   'query': "hostname, loggedDate, expirationDate FROM session WHERE expirationDate < ?",
-    //   'values': [now]
-    // };
-    // expiredSites = await dynamicDao.agnosticQuery(expiredSites);
-    // //console.log(expiredSites);
-    //
-    // if (expiredSites[0]) {
-    //   expiredSites[0].values.forEach((item, i) => {
-    //     session.expiredHostname = item[0];
-    //   });
-    // }
-    //
-    // console.log(session.activeSites);
-    // console.log(session.expiredSites);
+    console.log(Session.activeSites);
+    console.log(Session.expiredSites);
 
     // let statement2 = {
     //   'operation': "SELECT",
@@ -115,8 +73,8 @@ async function handleInstall(details) {
   } catch (e) {
     console.error(e);
   } finally {
-    await dynamicDao.persistDatabase();
-    //await dynamicDao.closeDatabase();
+    await DynamicDao.persistDatabase();
+    //await DynamicDao.closeDatabase();
   }
 
 }
@@ -149,7 +107,7 @@ async function handleStartup() {
       'operation': "SELECT",
       'query': "* FROM cookies",
     };
-    result = await dynamicDao.agnosticQuery(statement2);
+    result = await DynamicDao.agnosticQuery(statement2);
     console.log(result);
 
     //Load DB
@@ -174,98 +132,107 @@ async function handleStartup() {
  * @param {Object}    tabInfo        Contains new state of tab
  */
 async function handleUpdated(tabId, changeInfo, tabInfo) {
+  // if(changeInfo.status == 'complete') {
+  //   let url = new URL(tabInfo.url);
+  //     if(url.hostname) {
+  //       var ts = new Date();
+  //
+  //       console.log("calling HandleUpdated");
+  //       console.log(ts.toISOString());
+  //       //console.log(tabInfo);
+  //       console.log(tabInfo.url);
+  //       console.log(url.hostname);
+  //       console.log("\n");
+  //
+  //     }
+  // }
   try {
+    //TODO: ensure answer is correct
+    //Get URL from updated tab
+    //Causes duplication when loading sites like reddit that load elements between URL loads causing multiple records per page
+    //if (changeInfo.url) {
+    //Alternatively check if site is done loading
+    if (changeInfo.status == 'complete') {
+      let url = new URL(tabInfo.url);
+      // Check host from URL is valid, and not a system page, or other
+      if (url.hostname) {
+        console.log("Tab: " + tabId +
+          " URL changed to " + tabInfo.url + " The host is " + url.hostname);
 
-    console.log(DynamicDao.DB);
+        let now = Date.now(); // Unix timestamp in milliseconds
 
-    //Get Host from URL
-    let url = new URL(changeInfo.url);
+        if (Session.expiredSites.includes(url.hostname)) {
+          console.log("Site is in expired list, needs caching and updating entry");
 
-    //Test getting localforage
-    let session = await localforage.getItem('session');
+          //Find host and removed old cookies
+          let hostId = await Session.getHostRowidByName(url.hostname);
+          let removedRowids = await Site.removeCookies(hostId);
+          //Alternatively could get the count of cookies on a site
+          //Then if different compare cookie names
+          //Then do replacement process
+          //Get fresh cookies and store them
+          let cookies = await Site.getCookies(tabInfo.url);
+          let insertedRowids = await Site.insertCookies(cookies, hostId);
+          hostId = await Session.updateHost(hostId, now);
 
-    //Only act on "new" (for now) URL
-    if (changeInfo.url && url.hostname && !(session.activeSites.includes(url.hostname))) {
+          //Using indexOf instead of for loop to remove item from Array
+          //Offers better performance on larger arrays according
+          //https://javascript.plainenglish.io/how-to-remove-a-specific-item-from-an-array-in-javascript-a49b108404c
+          let hostIndex = Session.expiredSites.indexOf(url.hostname)
+          hostIndex > -1 ? Session.expiredSites.splice(hostIndex, 1) : false
 
-      //Must be called before running any db methods
-      // const SQL = await DynamicDao.initSqlJs(DynamicDao.config);
-      // DynamicDao.SQL = SQL;
-      // //console.log("DynamicDao - handleInstall - sql.js loaded");
-      //
-      // //Initialize DB
-      // var dynamicDao = new DynamicDao('sqlite', null);
-      //Test getting localforage
-
-      console.log(DynamicDao);
-
-      let dynamicDao = await DynamicDao.localforage.getItem('dynamicDao');
-      console.log(dynamicDao);
-
-      //await dynamicDao.retrieveDatabase();
-
-      console.log("Tab: " + tabId +
-        " URL changed to " + changeInfo.url + " The host is " + url.hostname);
+          //Set site in local memory
+          Session.activeSites.push(url.hostname);
 
 
-      let now = Date.now(); // Unix timestamp in milliseconds
-      let expires = (now + 24 * 60 * 60 * 1000);
+        } else if (!(Session.activeSites.includes(url.hostname))) {
+          console.log("Add to local memory, add to list for next startup");
+          // Delay implemented to attempt capture of late js script set cookies.
+          // Was impractical due to async nature of the setting and differences in timing
+          // Instead opted towards using toolbar script for checking.
+          // const delay = ms => new Promise(res => setTimeout(res, ms));
+          // await delay(40000);
+          let cookies = await Site.getCookies(tabInfo.url);
+          let hostId = await Session.insertHost(url.hostname, now);
+          let rowid = await Site.insertCookies(cookies, hostId);
+          Session.activeSites.push(url.hostname);
 
-      console.log(now);
-      console.log(expires);
-
-      //Insert the url.hostname into a separate database table
-      // let insertHost = {
-      //   'operation': "INSERT",
-      //   'query': "INTO session (hostname, loggedDate, expirationDate) VALUES (?, ?, ?) RETURNING rowid",
-      //   'values': [url.hostname, now, expires],
-      // };
-      // insertHost = await dynamicDao.agnosticQuery(insertHost);
-
-      let activeSites = {
-        'operation': "SELECT",
-        'query': "hostname FROM session WHERE expirationDate >= ?",
-        'values': [now]
-      };
-      activeSites = await dynamicDao.agnosticQuery(activeSites);
-      console.log(activeSites);
-
-      //Get cookies set
-      details = {
-        'url': changeInfo.url,
-      };
-      let cookies = await browser.cookies.getAll(details);
-      //console.log(cookies);
-
-      // Regular for loop instead of foreach due to asynchronous nature
-      for (var cookie of cookies) {
-        //console.log(cookie);
-        cookie.hostOnly === true ? 1 : 0;
-        cookie.expirationDate = parseInt(cookie.expirationDate);
-        insertCookie = {
-          'operation': "INSERT",
-          'query': "INTO cookies (domain, expirationDate, hostOnly, name, value, hostname) VALUES (?, ?, ?, ?, ?, ?) RETURNING rowid",
-          'values': [cookie.domain, cookie.expirationDate, cookie.hostOnly, cookie.name, cookie.value, hostId],
-        };
-        result = await dynamicDao.agnosticQuery(insertCookie);
-
-        //console.log(result);
+        } else {
+          console.log("Site already in local memory");
+          console.log("Increment count for visits on this site");
+          let visitCount = await Site.increaseVisitCount(url.hostname);
+          console.log(visitCount);
+        }
+        await DynamicDao.persistDatabase();
       }
-
-      session.current = url.hostname;
-      //console.log(session.log);
-
-      //initialise count here
-
-    } else {
-      //increment count here based on url.hostname
     }
   } catch (e) {
-    throw (e)
+    console.error(e);
+    //throw (e)
   } finally {
     //Persist to db
-    await dynamicDao.persistDatabase();
-    await dynamicDao.closeDatabase();
-    console.log(dynamicDao.db);
+    //await dynamicDao.persistDatabase();
+    //await dynamicDao.closeDatabase();
   }
   return true;
 }
+
+// Need to recall function on second page reload and compare count of site.
+// If new cookeis are created display a warning message to the user saying as much
+//Also display what the new cookies added are?
+
+//With handleChanged record if any updates are ocurring between
+//page loads and point this out to users?
+//Not as useful to use handleChanged, since
+// function handleChanged (changeInfo) {
+//   var ts = new Date();
+//   console.log(ts.toISOString());
+//
+//   console.log(changeInfo.cause);
+//   console.log(changeInfo.cookie);
+//   console.log("\n");
+  // console.log('Cookie changed: ' +
+  //             '\n * Cookie: ' + JSON.stringify(changeInfo.cookie) +
+  //             '\n * Cause: ' + changeInfo.cause +
+  //             '\n * Removed: ' + changeInfo.removed);
+// }
