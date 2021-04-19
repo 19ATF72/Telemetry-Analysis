@@ -69,6 +69,19 @@ class DynamicDao {
   }
 
   /*
+   * createExpires()
+   *
+   * Returns expiry time from date passed
+   *
+   * @param {String}         str         String version of the database
+   *
+   * @return {Uint8Array}    arr         Converted array version of database
+   */
+  static createExpires(now) {
+    return (now + 24 * 60 * 60 * 1000);
+  }
+
+  /*
    * CRUD + Load/Unload Functions
    *
    * Contains functions used for interacting with the database
@@ -83,7 +96,7 @@ class DynamicDao {
    *
    * @return {boolean}    success         Returns outcome of the operation
    */
-  static async createDatabase() {
+  static async createDatabase(now) {
     try {
       //console.group("DynamicDao - createDatabase");
       var loadDb = await DynamicDao.localforage.getItem(DynamicDao.name);
@@ -96,6 +109,7 @@ class DynamicDao {
         //console.log("DynamicDao - createDatabase - creating db");
         //Create the database
         var db = new DynamicDao.SQL.Database();
+        let expires = DynamicDao.createExpires();
         //console.log(db);
 
         db.run(`CREATE TABLE session (
@@ -104,26 +118,82 @@ class DynamicDao {
           expirationDate INTEGER,
           visitCount INTEGER)`);
 
-        db.run(`CREATE TABLE cookies (
+        db.run(`CREATE TABLE cookie (
           domain TEXT,
           expirationDate INTEGER,
           hostOnly INTEGER,
           name TEXT,
           value TEXT,
           session_rowid INTEGER,
-          FOREIGN KEY(session_rowid) REFERENCES session(rowid))`);
+          cookie_name_classification_rowid INTEGER,
+          FOREIGN KEY(session_rowid) REFERENCES session(rowid)
+          FOREIGN KEY(cookie_name_classification_rowid) REFERENCES cookie_name_classification(rowid))`);
+
+        db.run(`CREATE TABLE cookie_name_classification (
+          id TEXT,
+          platform TEXT,
+          category TEXT,
+          name TEXT,
+          domain TEXT,
+          description TEXT,
+          retention_period TEXT,
+          data_controller TEXT,
+          gdpr_portal TEXT,
+          wildcard_match INTEGER)`);
+
+        db.run(`CREATE TABLE cookie_list_detail (
+          cookie_rowid INTEGER REFERENCES cookie(rowid),
+          list_detail_rowid INTEGER REFERENCES list_detail(rowid))`);
+
+        db.run(`CREATE TABLE list_value (
+          dns TEXT,
+          host INTEGER,
+          list_detail_rowid INTEGER,
+          FOREIGN KEY(list_detail_rowid) REFERENCES list_detail(rowid))`);
+
+        db.run(`CREATE TABLE list_detail (
+          list_category_rowid INTEGER,
+          list_accuracy_rowid INTEGER,
+          sourceRepo TEXT,
+          description TEXT,
+          sourceURL TEXT,
+          lastUpdated INTEGER,
+          expirationDate INTEGER,
+          FOREIGN KEY(list_category_rowid) REFERENCES list_category(rowid),
+          FOREIGN KEY(list_accuracy_rowid) REFERENCES list_accuracy(rowid))`);
+
+        db.run(`CREATE TABLE list_category (
+          name TEXT)`);
+
+        db.run(`CREATE TABLE list_accuracy (
+          name TEXT)`);
+
+        //Insert list types
+        db.run("INSERT INTO list_category (name) VALUES (?), (?), (?), (?), (?), (?)",
+          ['suspicious', "advertising", "tracking", "malicious", "other", "unclassified"]);
+
+        //Insert list types
+        db.run("INSERT INTO list_accuracy (name) VALUES (?), (?), (?)",
+          ['low', "medium", "high"]);
+
+        //Insert initial lists
+        db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate) VALUES (?,?,?,?,?,?,?)",
+          [2, 3, "https://github.com/easylist/easylist", "Easylist", "https://v.firebog.net/hosts/Easylist.txt", now, expires]);
+
+        db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate) VALUES (?,?,?,?,?,?,?)",
+          [3, 3, "https://github.com/easylist/easylist", "Easyprivacy", "https://v.firebog.net/hosts/Easyprivacy.txt", now, expires]);
 
         db.run("INSERT INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?)",
-          ['www.active.org', 1617482504750, 1617999846494, 1]);
+          ['www.active.org', now, expires, 1]);
         db.run("INSERT INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?)",
-          ['www.expired.org', 1617482504750, 1617482504800, 1]);
+          ['www.expired.org', now, now, 1]);
         db.run("INSERT INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?)",
-          ['www.wikipedia.org', 1617482504750, 1617482504800, 1]);
-        db.run("INSERT INTO cookies (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?,?,?,?,?,?)",
+          ['www.wikipedia.org', now, now, 1]);
+        db.run("INSERT INTO cookie (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?,?,?,?,?,?)",
           ['www.example.org', '1234', 'true', 'testCookie', 'testAgain', 1]);
-        db.run("INSERT INTO cookies (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?,?,?,?,?,?)",
+        db.run("INSERT INTO cookie (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?,?,?,?,?,?)",
           ['www.example.org', '1234', 'true', 'testCookie', 'testAgain', 3]);
-        db.run("INSERT INTO cookies (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?,?,?,?,?,?)",
+        db.run("INSERT INTO cookie (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?,?,?,?,?,?)",
           ['www.example1.org', '12341', 'true', 'testCookie1', 'testAgain11', 3]);
 
         //TODO: Modify this to get a text file with SLITE creating instructions
@@ -157,7 +227,7 @@ class DynamicDao {
         //Load db from memory
         loadDb = new DynamicDao.SQL.Database(DynamicDao.toBinArray(loadDb));
       } else {
-        throw new Error("DynamicDao - retrieveDatabase - Cannot load database")
+        throw new Error("DynamicDao - retrieveDatabase - Cannot load database");
       }
     } catch (e) {
       throw (e);
@@ -193,6 +263,7 @@ class DynamicDao {
             rs = rs[0].values[0][0];
           } else {
             console.log("rs empty");
+            rs = null;
           }
         case 'DELETE':
           //Get the amount of rows Removed

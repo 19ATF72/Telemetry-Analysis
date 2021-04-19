@@ -76,7 +76,7 @@ class Session {
   static async insertHost(hostname, now) {
     let rowid;
     try {
-      let expires = (now + 24 * 60 * 60 * 1000);
+      let expires = DynamicDao.createExpires(now);
       let insertHost = {
         'operation': "INSERT",
         'query': "INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?) RETURNING rowid",
@@ -101,7 +101,7 @@ class Session {
   static async updateHost(hostId, now) {
     let rowid;
     try {
-      let expires = (now + 24 * 60 * 60 * 1000);
+      let expires = DynamicDao.createExpires(now);
       let updateHost = {
         'operation': "UPDATE",
         'query': "session SET loggedDate = ?, expirationDate = ? WHERE rowid = ? RETURNING rowid",
@@ -139,6 +139,42 @@ class Session {
       throw (e);
     } finally {
       return rowid;
+    }
+  }
+
+  /*
+   * getHostsByCookieName()
+   *
+   * Retrieves all hosts that have cookies with same name
+   *
+   * @return {ArrayList}     hostnames      List of hostnames that share cookies
+   */
+  static async getHostsByCookieName(cookies, hostUrl) {
+    let matchedCookies = [];
+    try {
+      for (var cookie of cookies) {
+        let hostsByCookieName = {
+          'operation': "SELECT",
+          //'query': "session_rowid, name, value FROM cookie WHERE name = ? ORDER BY session_rowid",
+          //AND s.hostname != ?
+          'query': `s.hostname, c.name, c.value
+                    FROM cookie c
+                    INNER JOIN session s
+                    ON c.session_rowid = s.rowid
+                    WHERE c.name = ? AND s.hostname != ? ORDER BY session_rowid`,
+          'values': [cookie.name, hostUrl],
+        };
+        hostsByCookieName = await DynamicDao.agnosticQuery(hostsByCookieName);
+        if (hostsByCookieName && hostsByCookieName.length) {
+          let matchedCookie = {cookieName: cookie.name, sitesMatched: hostsByCookieName[0].values};
+          matchedCookies.push(matchedCookie);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      throw (e)
+    } finally {
+      return matchedCookies;
     }
   }
 

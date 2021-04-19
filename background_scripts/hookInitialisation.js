@@ -33,21 +33,60 @@ browser.tabs.onUpdated.addListener(handleUpdated);
  */
 async function handleInstall(details) {
   try {
+    let now = Date.now(); // Unix timestamp in milliseconds
+
     //Must be called before running any db methods
     DynamicDao.SQL = await DynamicDao.initSqlJs(DynamicDao.config);
-    DynamicDao.dbCreated = await DynamicDao.createDatabase();
+    DynamicDao.dbCreated = await DynamicDao.createDatabase(now);
     DynamicDao.DB = await DynamicDao.retrieveDatabase();
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT
-    let now = Date.now(); // Unix timestamp in milliseconds
     Session.activeSites = await Session.getActiveSites(now);
     Session.expiredSites = await Session.getExpiredSites(now);
+
 
     console.log(Session.activeSites);
     console.log(Session.expiredSites);
 
-    //Populate Telemetry Lists
-    //var lists = await getLists();
+    //LOAD LISTS FOR CLASIFICATION
+    List.listsDownloaded = await List.retrieveLists();
+    console.log("Lists downloaded = ", List.listsDownloaded);
+
+    //LOAD OPEN COOKIE DATABASE
+    List.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(List.openCookieDatabase)
+
+    // testInsert = {
+    //   'operation': "SELECT",
+    //   'query': "rowid, * FROM list_value",
+    // };
+    // result = await DynamicDao.agnosticQuery(testInsert);
+    // console.log(result);
+    //
+    // let result;
+    // let testInsert = {
+    //   'operation': "SELECT",
+    //   'query': "rowid, * FROM list_detail",
+    // };
+    // result = await DynamicDao.agnosticQuery(testInsert);
+    // console.log(result);
+
+
+    // Operation for removing expired lists and reloading them
+    // List.expiredListsUpdated = await List.updateExpiredLists(now);
+    // console.log("Lists updated = ", List.expiredListsUpdated);
+
+    // Operation for removing all lists values and reloading them
+    // List.listsDownloaded = !(await List.removeAllListsValues());
+    // List.listsDownloaded = await List.retrieveLists();
+    // console.log("Lists downloaded = ", List.listsDownloaded);
+
+    // Operations for adding a new list and removing a new list
+    // let testList = new List(3, 3, "https://github.com/easylist/easyTest", "EasyTest", "https://v.firebog.net/hosts/AdguardDNS.txt", now, now);
+    // testList.listLoaded = await testList.addList();
+    // testList.listLoaded = !(await List.removeList(testList.rowid));
+    // console.log(testList.listLoaded);
+
+
   } catch (e) {
     console.error(e);
   } finally {
@@ -84,7 +123,7 @@ async function handleStartup() {
 
     let getCookies = {
       'operation': "SELECT",
-      'query': "* FROM cookies",
+      'query': "* FROM cookie",
     };
     result = await DynamicDao.agnosticQuery(getCookies);
     console.log(result);
@@ -157,14 +196,20 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
           // await delay(40000);
           let cookies = await Site.getCookies(tabInfo.url);
           let hostId = await Session.insertHost(url.hostname, now);
-          let rowid = await Site.insertCookies(cookies, hostId);
+
+          console.log(cookies);
+          if (cookies.length) {
+            let rowid = await Site.insertCookies(cookies, hostId);
+          }
           Session.activeSites.push(url.hostname);
 
-          // console.log("Testing checking for sites with same identifier");
-          //
+          //THIS IS THE CODE FOR RETRIEVING SITES FOR IDENTIFIERS
+          // console.log("Retrieving sites with same cookie name identifier");
           // console.log(cookies);
-          //
-          // let sameIdentifier = await Session.getHostsWithSameCookieName(cookies);
+          // console.log(url.hostname);
+          // let matchedHosts = await Session.getHostsByCookieName(cookies, url.hostname);
+          // console.log(matchedHosts);
+
 
         } else {
           console.log("Site already in local memory");
