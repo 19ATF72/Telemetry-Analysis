@@ -39,14 +39,18 @@ class Site {
     let all_rowid = [];
     let list_detail_rowids;
     let cookie_rowid;
+    let cookie_name_classification_rowid;
     try {
       for (var cookie of cookies) {
         cookie.hostOnly === true ? 1 : 0;
         cookie.expirationDate = parseInt(cookie.expirationDate);
+
+        cookie_name_classification_rowid = await Site.classifyCookieByName(cookie);
+
         let insertCookie = {
           'operation': "INSERT",
-          'query': "INTO cookie (domain, expirationDate, hostOnly, name, value, session_rowid) VALUES (?, ?, ?, ?, ?, ?) RETURNING rowid",
-          'values': [cookie.domain, cookie.expirationDate, cookie.hostOnly, cookie.name, cookie.value, hostId],
+          'query': "INTO cookie (domain, expirationDate, hostOnly, name, value, session_rowid, cookie_name_classification_rowid) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING rowid",
+          'values': [cookie.domain, cookie.expirationDate, cookie.hostOnly, cookie.name, cookie.value, hostId, cookie_name_classification_rowid],
         };
         cookie_rowid = await DynamicDao.agnosticQuery(insertCookie);
         all_rowid.push(cookie_rowid);
@@ -62,8 +66,6 @@ class Site {
             await DynamicDao.agnosticQuery(insertListDetail);
           }
         }
-
-        cookie_name_category_rowid = await Site.classifyCookieByName(cookie);
       }
     } catch (e) {
       console.error(e);
@@ -151,49 +153,30 @@ class Site {
    *
    * Retrieves rowid of matching name in categorization table
    *
-   * @return {ArrayList}     matchedValue      values from list_value
+   * @return {Integer}     cookie_name_classification_rowid      values from list_value
    */
   static async classifyCookieByName(cookie) {
-    console.log(cookie.name);
-    // let strippedDomain;
-    // let classifyCookie;
-    // let list_detail_rowid;
-    // try {
-    //   if(cookie.domain.startsWith('.')) {
-    //     strippedDomain = cookie.domain.substring(1);
-    //   }
-    //   if(cookie.domain.endsWith('.')) {
-    //     strippedDomain = cookie.domain.slice(0, -1);
-    //   }
-    //   if(strippedDomain) {
-    //     classifyCookie = {
-    //       'operation': "SELECT",
-    //       'query': `ld.rowid
-    //                 FROM list_value AS lv
-    //                 INNER JOIN list_detail AS ld ON lv.list_detail_rowid = ld.rowid
-    //                 WHERE lv.host LIKE ? OR lv.host LIKE ?`,
-    //       'values': [cookie.domain, strippedDomain],
-    //     };
-    //   } else {
-    //     classifyCookie = {
-    //       'operation': "SELECT",
-    //       'query': `ld.rowid
-    //                 FROM list_value AS lv
-    //                 INNER JOIN list_detail AS ld ON lv.list_detail_rowid = ld.rowid
-    //                 WHERE lv.host LIKE ?`,
-    //       'values': [cookie.domain],
-    //     };
-    //   }
-    //   classifyCookie = await DynamicDao.agnosticQuery(classifyCookie);
-    //   if(classifyCookie && classifyCookie.length) {
-    //     list_detail_rowid = classifyCookie[0].values;
-    //   }
-    // } catch (e) {
-    //   console.error(e);
-    //   throw (e)
-    // } finally {
-    //   return list_detail_rowid;
-    // }
+    let cookie_name_classification_rowid;
+    try {
+      let classifyCookieByName = {
+        'operation': "SELECT",
+        'query': `rowid
+                  FROM cookie_name_classification
+                  WHERE name = ?`,
+        'values': [cookie.name],
+      };
+      classifyCookieByName = await DynamicDao.agnosticQuery(classifyCookieByName);
+      if(classifyCookieByName && classifyCookieByName.length) {
+        cookie_name_classification_rowid = classifyCookieByName[0].values[0][0];
+      } else {
+        cookie_name_classification_rowid = null
+      }
+    } catch (e) {
+      console.error(e);
+      throw (e)
+    } finally {
+      return cookie_name_classification_rowid;
+    }
   }
 
   /*

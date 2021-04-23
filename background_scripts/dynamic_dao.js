@@ -113,10 +113,11 @@ class DynamicDao {
         //console.log(db);
 
         db.run(`CREATE TABLE session (
-          hostname TEXT,
+          hostname TEXT UNIQUE,
           loggedDate INTEGER,
           expirationDate INTEGER,
-          visitCount INTEGER)`);
+          visitCount INTEGER,
+          lastAccessed INTEGER)`);
 
         db.run(`CREATE TABLE cookie (
           domain TEXT,
@@ -159,8 +160,32 @@ class DynamicDao {
           sourceURL TEXT,
           lastUpdated INTEGER,
           expirationDate INTEGER,
+          containsDNS INTEGER,
           FOREIGN KEY(list_category_rowid) REFERENCES list_category(rowid),
           FOREIGN KEY(list_accuracy_rowid) REFERENCES list_accuracy(rowid))`);
+
+        db.run(`CREATE TABLE web_request_url (
+          session_rowid INTEGER,
+          documentUrl TEXT UNIQUE,
+          web_request_detail_rowid INTEGER,
+          FOREIGN KEY(session_rowid) REFERENCES session(rowid),
+          FOREIGN KEY(web_request_detail_rowid) REFERENCES web_request_detail(rowid))`);
+
+        db.run(`CREATE TABLE web_request_detail (
+          frameId INTEGER,
+          ip TEXT,
+          method TEXT,
+          originUrl TEXT,
+          statusLine TEXT,
+          thirdParty BOOLEAN,
+          timeStamp INTEGER,
+          resourceUrl TEXT UNIQUE,
+          accessCount INTEGER)`);
+
+          //separate the full path into 3 tables
+          //session - host
+          //path - full url
+          //resource - link to resource
 
         db.run(`CREATE TABLE list_category (
           name TEXT)`);
@@ -168,20 +193,33 @@ class DynamicDao {
         db.run(`CREATE TABLE list_accuracy (
           name TEXT)`);
 
+        db.run(`CREATE TABLE web_request_detail_list_category (
+          web_request_detail_rowid INTEGER REFERENCES web_request_detail(rowid),
+          list_category_rowid INTEGER REFERENCES list_category(rowid),
+          CONSTRAINT composite_key
+          UNIQUE (web_request_detail_rowid, list_category_rowid) ON CONFLICT IGNORE)`);
+
         //Insert list types
-        db.run("INSERT INTO list_category (name) VALUES (?), (?), (?), (?), (?), (?)",
-          ['suspicious', "advertising", "tracking", "malicious", "other", "unclassified"]);
+        db.run("INSERT INTO list_category (name) VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)",
+          ['suspicious', "advertising", "tracking", "malicious", "other",
+          "fingerprinting", "fingerprinting_content", "cryptomining",
+          "cryptomining_content", "tracking_ad", "tracking_analytics",
+          "tracking_social", "tracking_content", "unclassified",
+          "any_basic_tracking", "any_strict_tracking", "any_social_tracking"]);
 
         //Insert list types
         db.run("INSERT INTO list_accuracy (name) VALUES (?), (?), (?)",
           ['low', "medium", "high"]);
 
         //Insert initial lists
-        db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate) VALUES (?,?,?,?,?,?,?)",
-          [2, 3, "https://github.com/easylist/easylist", "Easylist", "https://v.firebog.net/hosts/Easylist.txt", now, expires]);
+        db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate, containsDNS) VALUES (?,?,?,?,?,?,?,?)",
+          [2, 3, "https://github.com/easylist/easylist", "Easylist", "https://v.firebog.net/hosts/Easylist.txt", now, expires, 0]);
 
-        db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate) VALUES (?,?,?,?,?,?,?)",
-          [3, 3, "https://github.com/easylist/easylist", "Easyprivacy", "https://v.firebog.net/hosts/Easyprivacy.txt", now, expires]);
+        db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate, containsDNS) VALUES (?,?,?,?,?,?,?,?)",
+          [3, 3, "https://github.com/easylist/easylist", "Easyprivacy", "https://v.firebog.net/hosts/Easyprivacy.txt", now, expires, 0]);
+
+        db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate, containsDNS) VALUES (?,?,?,?,?,?,?,?)",
+          [3, 3, "https://github.com/Kees1958/W3C_annual_most_used_survey_blocklist", "W3C_annual_most_used_survey_blocklist", "https://raw.githubusercontent.com/Kees1958/W3C_annual_most_used_survey_blocklist/master/TOP_EU_US_Ads_Trackers_HOST", now, expires, 1]);
 
         db.run("INSERT INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?)",
           ['www.active.org', now, expires, 1]);
@@ -262,7 +300,7 @@ class DynamicDao {
           if (rs.length) {
             rs = rs[0].values[0][0];
           } else {
-            console.log("rs empty");
+            // console.log("rs empty");
             rs = null;
           }
         case 'DELETE':

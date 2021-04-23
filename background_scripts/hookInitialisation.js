@@ -10,8 +10,11 @@ browser.runtime.onInstalled.addListener(handleInstall);
 // Hook that triggers upon startup.
 browser.runtime.onStartup.addListener(handleStartup);
 
-//When user updates a tab with new URL
+// Hook when user updates a tab with new URL
 browser.tabs.onUpdated.addListener(handleUpdated);
+
+// Hook when webRequest is made on page
+browser.webRequest.onCompleted.addListener(handleWebRequestOnComplete, {urls: ["<all_urls>"]});
 
 //When cookie is updated
 // browser.cookies.onChanged.addListener(handleChanged);
@@ -48,12 +51,37 @@ async function handleInstall(details) {
     console.log(Session.activeSites);
     console.log(Session.expiredSites);
 
+    //LOAD CLASSIFICATIONS
+    List.listCategoriesMap = await List.getListCategoriesMap();
+
     //LOAD LISTS FOR CLASIFICATION
     List.listsDownloaded = await List.retrieveLists();
     console.log("Lists downloaded = ", List.listsDownloaded);
 
     //LOAD OPEN COOKIE DATABASE
     List.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(List.openCookieDatabase)
+    console.log("OpenCookieDatabase downloaded = ", List.openCookieDatabaseDownloaded);
+
+    // testInsert = {
+    //   'operation': "SELECT",
+    //   'query': "rowid, * FROM web_request_detail_list_category",
+    // };
+    // result = await DynamicDao.agnosticQuery(testInsert);
+
+    let result;
+    let testInsert = {
+      'operation': "SELECT",
+      'query': "rowid, * FROM web_request_detail",
+    };
+    result = await DynamicDao.agnosticQuery(testInsert);
+    console.log(result);
+
+    testInsert = {
+      'operation': "SELECT",
+      'query': "rowid, * FROM web_request_detail_list_category",
+    };
+    result = await DynamicDao.agnosticQuery(testInsert);
+    console.log(result);
 
     // testInsert = {
     //   'operation': "SELECT",
@@ -62,10 +90,9 @@ async function handleInstall(details) {
     // result = await DynamicDao.agnosticQuery(testInsert);
     // console.log(result);
     //
-    // let result;
-    // let testInsert = {
+    // testInsert = {
     //   'operation': "SELECT",
-    //   'query': "rowid, * FROM list_detail",
+    //   'query': "rowid, * FROM cookie_name_classification",
     // };
     // result = await DynamicDao.agnosticQuery(testInsert);
     // console.log(result);
@@ -81,7 +108,7 @@ async function handleInstall(details) {
     // console.log("Lists downloaded = ", List.listsDownloaded);
 
     // Operations for adding a new list and removing a new list
-    // let testList = new List(3, 3, "https://github.com/easylist/easyTest", "EasyTest", "https://v.firebog.net/hosts/AdguardDNS.txt", now, now);
+    // let testList = new List(3, 3, "https://github.com/easylist/easyTest", "EasyTest", "https://v.firebog.net/hosts/AdguardDNS.txt", now, now, 0);
     // testList.listLoaded = await testList.addList();
     // testList.listLoaded = !(await List.removeList(testList.rowid));
     // console.log(testList.listLoaded);
@@ -144,7 +171,7 @@ async function handleStartup() {
 }
 
 /*
- * handleUpdated() - hooks runtime.onUpdated()
+ * handleUpdated() - hooks tabs.onUpdated()
  *
  * Fired when a tab is updated in any way
  *
@@ -162,8 +189,8 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
       let url = new URL(tabInfo.url);
       // Check host from URL is valid, and not a system page, or other
       if (url.hostname) {
-        console.log("Tab: " + tabId +
-          " URL changed to " + tabInfo.url + " The host is " + url.hostname);
+        // console.log("Tab: " + tabId +
+        //   " URL changed to " + tabInfo.url + " The host is " + url.hostname);
 
         let now = Date.now(); // Unix timestamp in milliseconds
 
@@ -184,20 +211,23 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
           //https://javascript.plainenglish.io/how-to-remove-a-specific-item-from-an-array-in-javascript-a49b108404c
           let hostIndex = Session.expiredSites.indexOf(url.hostname)
           hostIndex > -1 ? Session.expiredSites.splice(hostIndex, 1) : false
+
+          let visitCount = await Site.increaseVisitCount(url.hostname);
+
           //Set site in local memory
           Session.activeSites.push(url.hostname);
 
         } else if (!(Session.activeSites.includes(url.hostname))) {
-          console.log("Add to local memory, add to list for next startup");
+          // console.log("Add to local memory, add to list for next startup");
           // Delay implemented to attempt capture of late js script set cookies.
           // Was impractical due to async nature of the setting and differences in timing
           // Instead opted towards using toolbar script for checking.
           // const delay = ms => new Promise(res => setTimeout(res, ms));
           // await delay(40000);
           let cookies = await Site.getCookies(tabInfo.url);
-          let hostId = await Session.insertHost(url.hostname, now);
+          let hostId = await Session.getHostRowid(url.hostname, now);
 
-          console.log(cookies);
+          // console.log(cookies);
           if (cookies.length) {
             let rowid = await Site.insertCookies(cookies, hostId);
           }
@@ -212,10 +242,10 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
 
 
         } else {
-          console.log("Site already in local memory");
-          console.log("Increment count for visits on this site");
+          // console.log("Site already in local memory");
+          // console.log("Increment count for visits on this site");
           let visitCount = await Site.increaseVisitCount(url.hostname);
-          console.log(visitCount);
+          // console.log(visitCount);
 
         }
         await DynamicDao.persistDatabase();
@@ -228,6 +258,56 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
     return true;
   }
 }
+
+/*
+ * handleWebRequest() - hooks webRequest.onCompleted()
+ *
+ * Fired when a webRequest is made for a page
+ *
+ * @param {Integer}   tabId          Id of tab ithat was updated
+ * @param {Object}    changeInfo     Contains properties that have changed
+ * @param {Object}    tabInfo        Contains new state of tab
+ */
+async function handleWebRequestOnComplete(requestDetails) {
+  if (!(requestDetails.fromCache)) {
+    //console.log(requestDetails);
+
+    // if (requestDetails.documentUrl) {
+    //   console.log("This is not top level");
+    //   console.log("add documentUrl, ip, method");
+    // } else {
+    //   console.log("This is top level upsert host");
+    // }
+    let requestUrl = new URL(requestDetails.url)
+
+    WebRequest.insertRequest(requestDetails, requestUrl, List.listCategoriesMap);
+    list_detail_rowid = WebRequest.classifyRequestByHostname(requestUrl);
+    //Session.getHostRowid(hostname, now)
+
+    // let result;
+    // let testInsert = {
+    //   'operation': "SELECT",
+    //   'query': "rowid, * FROM web_request_detail",
+    // };
+    // result = await DynamicDao.agnosticQuery(testInsert);
+    // console.log(result);
+
+  } else {
+    // console.log("Loading from cache");
+  }
+  //console.log(requestDetails.responseHeaders);
+}
+
+//TABLE WITH
+//FULL url
+//HOSTNAME urlid
+//CLASSIFICATION
+
+//IF(HISTORY.SITENOTSEEN):
+
+//ALSO NEED A CONDITIONAL IN THE HOOK TO CHECK FOR HOSTNAME URLID
+
+
 
 // Need to recall function on second page reload and compare count of site.
 // If new cookeis are created display a warning message to the user saying as much

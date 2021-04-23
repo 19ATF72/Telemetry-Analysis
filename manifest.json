@@ -18,6 +18,7 @@
     "tabs",
     "unlimitedStorage",
     "storage",
+    "webRequest",
     "<all_urls>"
   ],
 

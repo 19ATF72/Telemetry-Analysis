@@ -67,22 +67,26 @@ class Session {
   }
 
   /*
-   * insertHost()
+   * getHostRowid()
    *
    * Query to insert a new site with details regarding to it
    *
    * @return {Integer}     rowid      ID of record just inserted
    */
-  static async insertHost(hostname, now) {
+  static async getHostRowid(hostname, now) {
     let rowid;
     try {
       let expires = DynamicDao.createExpires(now);
-      let insertHost = {
+      let getHostRowid = {
         'operation': "INSERT",
-        'query': "INTO session (hostname, loggedDate, expirationDate, visitCount) VALUES (?,?,?,?) RETURNING rowid",
-        'values': [hostname, now, expires, 1],
+        'query': `INTO session (hostname, loggedDate, expirationDate, visitCount)
+                  VALUES (?,?,?,?)
+                  ON CONFLICT(hostname)
+                  DO UPDATE SET lastAccessed = ?
+                  RETURNING rowid`,
+        'values': [hostname, now, expires, 1, now],
       };
-      rowid = await DynamicDao.agnosticQuery(insertHost);
+      rowid = await DynamicDao.agnosticQuery(getHostRowid);
     } catch (e) {
       console.error(e);
       throw (e);
@@ -166,7 +170,10 @@ class Session {
         };
         hostsByCookieName = await DynamicDao.agnosticQuery(hostsByCookieName);
         if (hostsByCookieName && hostsByCookieName.length) {
-          let matchedCookie = {cookieName: cookie.name, sitesMatched: hostsByCookieName[0].values};
+          let matchedCookie = {
+            cookieName: cookie.name,
+            sitesMatched: hostsByCookieName[0].values
+          };
           matchedCookies.push(matchedCookie);
         }
       }
