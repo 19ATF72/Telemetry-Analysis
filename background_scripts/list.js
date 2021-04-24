@@ -6,8 +6,10 @@
 class List {
   static listsDownloaded = false;
   static expiredListsUpdated = false;
-  static openCookieDatabase = 'https://raw.githubusercontent.com/jkwakman/Open-Cookie-Database/master/open-cookie-database.csv'
+  static openCookieDatabase = 'https://raw.githubusercontent.com/jkwakman/Open-Cookie-Database/master/open-cookie-database.csv';
+  static whoTracksMe = 'https://raw.githubusercontent.com/ghostery/whotracks.me/master/whotracksme/data/assets/trackerdb.sql';
   static openCookieDatabaseDownloaded = false;
+  static whoTracksMeDownloaded = false;
   static listCategoriesMap = [];
 
   constructor(list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate, containsDNS) {
@@ -63,24 +65,6 @@ class List {
    * @return {ArrayList}     cookies      List of all cookies for site
    */
   static async retrieveList(listRowid, sourceURL, containsDNS) {
-    //try {
-    //   let request = await fetch(sourceURL);
-    //   let data = (await request.text()).split(/\r?\n/);
-    //   for (var row of data) {
-    //     let insertListValue = {
-    //       'operation': "INSERT",
-    //       'query': "INTO list_value (host, list_detail_rowid) VALUES (?, ?)",
-    //       'values': [row, listRowid],
-    //     };
-    //     await DynamicDao.agnosticQuery(insertListValue);
-    //   }
-    // } catch (e) {
-    //   console.error(e);
-    //   throw (e)
-    // } finally {
-    //   return true;
-    // }
-
     //Use papaparse instead
     let results = await List.parseDataFromRemoteCSV(sourceURL, false);
     try {
@@ -110,7 +94,6 @@ class List {
           }
           break;
       }
-
     } catch (e) {
       console.error(e);
       throw (e)
@@ -120,7 +103,7 @@ class List {
   }
 
   /*
-   * retrieveList()
+   * retrieveOpenCookieDatabase()
    *
    * retrieves and inserts data from Open Database Project CSV file
    *
@@ -149,6 +132,36 @@ class List {
   }
 
   /*
+   * retrieveOpenCookieDatabase()
+   *
+   * retrieves and inserts data from Open Database Project CSV file
+   *
+   * @return {boolean}     success      outcome of operation
+   */
+  static async retrieveWhoTracksMeDatabase(sourceURL) {
+    let results = await List.parseDataFromRemoteSQL(sourceURL, false);
+    console.log(results);
+    try {
+      // for (var row of results.data) {
+      //   if (row.ID) {
+      //     let insertListValue = {
+      //       'operation': "INSERT",
+      //       'query': `INTO cookie_name_classification (id, platform, category, name, domain, description, retention_period, data_controller, gdpr_portal, wildcard_match)
+      //           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? , ?)`,
+      //       'values': [row.ID, row.Platform, row.Category, row["Cookie / Data Key name"], row.Domain, row.Description, row["Retention period"], row["Data Controller"], row["User Privacy & GDPR Rights Portals"], parseInt(row["Wildcard match"])],
+      //     };
+      //     await DynamicDao.agnosticQuery(insertListValue);
+      //   }
+      // }
+    } catch (e) {
+      console.error(e);
+      throw (e)
+    } finally {
+      return true;
+    }
+  }
+
+  /*
    * parseDataFromRemoteCSV()
    *
    * performs query to retrieve active sites from database to avoid re-caching
@@ -163,7 +176,30 @@ class List {
         comments: "#",
         delimitersToGuess: [',', '\t', '|', ';', ' ', Papa.RECORD_SEP, Papa.UNIT_SEP],
         complete(results, file) {
-          console.log(results);
+          resolve(results)
+        },
+        error(err, file) {
+          reject(err)
+        }
+      })
+    })
+  }
+
+  /*
+   * parseDataFromRemoteSQL()
+   *
+   * performs query to retrieve active sites from database to avoid re-caching
+   *
+   * @return {ArrayList}     cookies      List of all cookies for site
+   */
+  static async parseDataFromRemoteSQL(sourceURL, header) {
+    return new Promise((resolve, reject) => {
+      Papa.parse(sourceURL, {
+        header: header,
+        download: true,
+        comments: "#",
+        delimiter: ");",
+        complete(results, file) {
           resolve(results)
         },
         error(err, file) {

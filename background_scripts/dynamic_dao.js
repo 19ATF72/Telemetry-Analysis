@@ -112,6 +112,7 @@ class DynamicDao {
         let expires = DynamicDao.createExpires();
         //console.log(db);
 
+        //SESSION
         db.run(`CREATE TABLE session (
           hostname TEXT UNIQUE,
           loggedDate INTEGER,
@@ -119,6 +120,7 @@ class DynamicDao {
           visitCount INTEGER,
           lastAccessed INTEGER)`);
 
+        //COOKIE
         db.run(`CREATE TABLE cookie (
           domain TEXT,
           expirationDate INTEGER,
@@ -142,15 +144,18 @@ class DynamicDao {
           gdpr_portal TEXT,
           wildcard_match INTEGER)`);
 
-        db.run(`CREATE TABLE cookie_list_detail (
-          cookie_rowid INTEGER REFERENCES cookie(rowid),
-          list_detail_rowid INTEGER REFERENCES list_detail(rowid))`);
-
+        //LIST
         db.run(`CREATE TABLE list_value (
           dns TEXT,
           host INTEGER,
           list_detail_rowid INTEGER,
           FOREIGN KEY(list_detail_rowid) REFERENCES list_detail(rowid))`);
+
+        db.run(`CREATE TABLE list_category (
+          name TEXT)`);
+
+        db.run(`CREATE TABLE list_accuracy (
+          name TEXT)`);
 
         db.run(`CREATE TABLE list_detail (
           list_category_rowid INTEGER,
@@ -164,12 +169,20 @@ class DynamicDao {
           FOREIGN KEY(list_category_rowid) REFERENCES list_category(rowid),
           FOREIGN KEY(list_accuracy_rowid) REFERENCES list_accuracy(rowid))`);
 
-        db.run(`CREATE TABLE web_request_url (
+        //COOKIE + LIST
+        db.run(`CREATE TABLE cookie_list_detail (
+          cookie_rowid INTEGER REFERENCES cookie(rowid),
+          list_detail_rowid INTEGER REFERENCES list_detail(rowid))`);
+
+        //WEB REQUEST
+        db.run(`CREATE TABLE web_request_detail_session (
           session_rowid INTEGER,
-          documentUrl TEXT UNIQUE,
           web_request_detail_rowid INTEGER,
           FOREIGN KEY(session_rowid) REFERENCES session(rowid),
-          FOREIGN KEY(web_request_detail_rowid) REFERENCES web_request_detail(rowid))`);
+          FOREIGN KEY(web_request_detail_rowid) REFERENCES web_request_detail(rowid)
+          CONSTRAINT composite_key
+          UNIQUE (session_rowid, web_request_detail_rowid)
+          ON CONFLICT IGNORE)`);
 
         db.run(`CREATE TABLE web_request_detail (
           frameId INTEGER,
@@ -182,30 +195,44 @@ class DynamicDao {
           resourceUrl TEXT UNIQUE,
           accessCount INTEGER)`);
 
-          //separate the full path into 3 tables
-          //session - host
-          //path - full url
-          //resource - link to resource
-
-        db.run(`CREATE TABLE list_category (
+        db.run(`CREATE TABLE web_request_category (
           name TEXT)`);
 
-        db.run(`CREATE TABLE list_accuracy (
-          name TEXT)`);
-
-        db.run(`CREATE TABLE web_request_detail_list_category (
+        //WEB_REQUEST + LIST_DETAIL
+        db.run(`CREATE TABLE web_request_detail_list_detail (
           web_request_detail_rowid INTEGER REFERENCES web_request_detail(rowid),
-          list_category_rowid INTEGER REFERENCES list_category(rowid),
+          list_detail_rowid INTEGER REFERENCES list_detail(rowid),
           CONSTRAINT composite_key
-          UNIQUE (web_request_detail_rowid, list_category_rowid) ON CONFLICT IGNORE)`);
+          UNIQUE (web_request_detail_rowid, list_detail_rowid)
+          ON CONFLICT IGNORE)`);
+
+        //WEB_REQUEST + WEB_REQUEST_CATEGORY
+        db.run(`CREATE TABLE web_request_detail_web_request_category (
+          web_request_detail_rowid INTEGER REFERENCES web_request_detail(rowid),
+          web_request_category_rowid INTEGER REFERENCES web_request_category(rowid),
+          CONSTRAINT composite_key
+          UNIQUE (web_request_detail_rowid, web_request_category_rowid)
+          ON CONFLICT IGNORE)`);
+
+
+        //separate the full path into 3 tables
+
+        //session - host
+        //path - full url
+        //resource - link to resource
+
 
         //Insert list types
-        db.run("INSERT INTO list_category (name) VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)",
-          ['suspicious', "advertising", "tracking", "malicious", "other",
-          "fingerprinting", "fingerprinting_content", "cryptomining",
-          "cryptomining_content", "tracking_ad", "tracking_analytics",
-          "tracking_social", "tracking_content", "unclassified",
-          "any_basic_tracking", "any_strict_tracking", "any_social_tracking"]);
+        db.run("INSERT INTO web_request_category (name) VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)",
+          ["fingerprinting", "fingerprinting_content", "cryptomining",
+            "cryptomining_content", "tracking", "tracking_ad", "tracking_analytics",
+            "tracking_social", "tracking_content", "any_basic_tracking",
+            "any_strict_tracking", "any_social_tracking", "unclassified"
+          ]);
+
+        //Insert list types
+        db.run("INSERT INTO list_category (name) VALUES (?), (?), (?), (?), (?)",
+          ['suspicious', "advertising", "tracking", "malicious", "other", ]);
 
         //Insert list types
         db.run("INSERT INTO list_accuracy (name) VALUES (?), (?), (?)",
@@ -287,7 +314,7 @@ class DynamicDao {
     try {
       //console.log(statement);
       var rs = DynamicDao.DB.exec(statement['operation'] + ' ' + statement['query'],
-              statement['values']);
+        statement['values']);
       switch (statement['operation']) {
         case 'SELECT':
           //Might be useful for operating over select statement results.
@@ -303,14 +330,14 @@ class DynamicDao {
             // console.log("rs empty");
             rs = null;
           }
-        case 'DELETE':
-          //Get the amount of rows Removed
-          //Or just return the rowid
-          // Getting ID of row returned by SQL
-          // rs = this.db.getRowsModified();
-          break;
-        default:
-          throw new Error("DynamicDao - agnosticQuery - Invalid operation");
+          case 'DELETE':
+            //Get the amount of rows Removed
+            //Or just return the rowid
+            // Getting ID of row returned by SQL
+            // rs = this.db.getRowsModified();
+            break;
+          default:
+            throw new Error("DynamicDao - agnosticQuery - Invalid operation");
       }
     } catch (e) {
       console.error(e);

@@ -5,33 +5,31 @@
  * TODO: Needs more fleshed out description
  **/
 class WebRequest {
-  static activeSites = [];
-  static expiredSites = [];
+  static webRequestCategoriesMap = [];
 
   /*
-   * insertCookie()
+   * insertRequest()
    *
-   * performs query to retrieve active sites from database to avoid re-caching
+   * Insert request received broken up into relevant tables
    *
    * @return {ArrayList}     all_rowid      ids of cookies inserted
    */
-  static async insertRequest(requestDetails, requestUrl, listCategories) {
-    let all_rowid = [];
-    let list_detail_rowids;
+  static async insertRequest(requestDetails, requestUrl, hostRowid, webRequestCategories) {
     let insertRequestDetail;
     let insertRequestCategory;
+    let insertHostSessionId;
     let web_request_detail_rowid;
-    let web_request_detail_list_category_rowid;
-    let list_category_rowid;
+    let web_request_detail_web_request_category_rowid;
+    let web_request_detail_session_rowid;
     let documentUrl = requestDetails.documentUrl;
     try {
       if (!(requestDetails.documentUrl)) {
-        //Maybe better just to set null instead
         documentUrl = requestDetails.url;
       }
 
       // console.log("ON COMPLETED Loading: " + requestDetails.url);
-      console.log(requestDetails);
+      // console.log(requestDetails);
+      // console.log(requestUrl.hostname);
 
       requestDetails.thirdParty === true ? 1 : 0;
       insertRequestDetail = {
@@ -49,116 +47,103 @@ class WebRequest {
 
       insertRequestCategory = {
         'operation': "INSERT",
-        'query': "INTO web_request_detail_list_category (web_request_detail_rowid, list_category_rowid) VALUES (?, ?) RETURNING rowid",
+        'query': "INTO web_request_detail_web_request_category (web_request_detail_rowid, web_request_category_rowid) VALUES (?, ?) RETURNING rowid",
       };
       if (requestDetails.urlClassification.firstParty.length) {
         for (var classification of requestDetails.urlClassification.firstParty) {
-          insertRequestCategory.values = [web_request_detail_rowid, listCategories.get(classification)];
-          web_request_detail_list_category_rowid = await DynamicDao.agnosticQuery(insertRequestCategory);
-          // console.log(web_request_detail_list_category_rowid);
+          insertRequestCategory.values = [web_request_detail_rowid, webRequestCategories.get(classification)];
+          web_request_detail_web_request_category_rowid = await DynamicDao.agnosticQuery(insertRequestCategory);
         }
       }
       if (requestDetails.urlClassification.thirdParty.length) {
         for (var classification of requestDetails.urlClassification.thirdParty) {
-          insertRequestCategory.values = [web_request_detail_rowid, listCategories.get(classification)],
-          web_request_detail_list_category_rowid = await DynamicDao.agnosticQuery(insertRequestCategory);
-          // console.log(web_request_detail_list_category_rowid);
+          insertRequestCategory.values = [web_request_detail_rowid, webRequestCategories.get(classification)],
+          web_request_detail_web_request_category_rowid = await DynamicDao.agnosticQuery(insertRequestCategory);
         }
       }
 
-      // if(requestDetails.urlClassification.thirdParty.length) {
-      //   for (var classification of requestDetails.urlClassification.firstParty) {
-      //     console.log(classification);
-      //
-      //    let hostIndex = listCategories.indexOf(classification);
-      //
-      //    console.log(hostIndex);
-
-      // insertRequestDetail = {
-      //    'operation': "INSERT",
-      //    'query': "INTO web_request_detail_list_category (web_request_detail_rowid, list_category_rowid) VALUES (?, ?) RETURNING rowid",
-      //    'values': [web_request_detail_rowid, requestDetails.ip],
-      //  };
-      //  web_request_detail_rowid = await DynamicDao.agnosticQuery(insertRequestDetail);
-      //}
-      //}
-
-
-      //   cookie.hostOnly === true ? 1 : 0;
-      //   cookie.expirationDate = parseInt(cookie.expirationDate);
-      //
-      //   cookie_name_classification_rowid = await Site.classifyCookieByName(cookie);
-      //
-      //   let insertCookie = {
-      //     'operation': "INSERT",
-      //     'query': "INTO cookie (domain, expirationDate, hostOnly, name, value, session_rowid, cookie_name_classification_rowid) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING rowid",
-      //     'values': [cookie.domain, cookie.expirationDate, cookie.hostOnly, cookie.name, cookie.value, hostId, cookie_name_classification_rowid],
-      //   };
-      //   cookie_rowid = await DynamicDao.agnosticQuery(insertCookie);
-      //   all_rowid.push(cookie_rowid);
-      //
-      //   list_detail_rowids = await Site.classifyCookieByDomain(cookie);
-      //   if (list_detail_rowids && list_detail_rowids.length) {
-      //     for (var list_detail_rowid of list_detail_rowids) {
-      //       let insertListDetail = {
-      //         'operation': "INSERT",
-      //         'query': "INTO cookie_list_detail (cookie_rowid, list_detail_rowid) VALUES (?, ?)",
-      //         'values': [cookie_rowid, list_detail_rowid[0]],
-      //       };
-      //       await DynamicDao.agnosticQuery(insertListDetail);
-      //     }
-      //   }
+      insertHostSessionId = {
+        'operation': "INSERT",
+        'query': `INTO web_request_detail_session
+                  (session_rowid, web_request_detail_rowid)
+                  VALUES (?, ?)
+                  RETURNING rowid`,
+        'values': [hostRowid, web_request_detail_rowid],
+      };
+      web_request_detail_session_rowid = await DynamicDao.agnosticQuery(insertHostSessionId);
     } catch (e) {
       console.error(e);
       throw (e)
     } finally {
-      return all_rowid;
+      return web_request_detail_rowid;
     }
   }
 
-  static async classifyRequestByHostname(requestUrl) {
-    let strippedHostname;
+  static async classifyRequestByHostname(web_request_detail_rowid, requestUrl, strippedUrl, webRequestCategories) {
     let classifyRequest;
-    let list_detail_rowid;
+    let list_detail_rowids;
+    let insertClassication;
+    let lastInsertedRowid = null;
     try {
-      if(requestUrl.hostname.startsWith('.')) {
-        strippedHostname = requestUrl.hostname.substring(1);
-      }
-      if(requestUrl.hostname.endsWith('.')) {
-        strippedDomain = requestUrl.hostname.slice(0, -1);
-      }
-      console.log(requestUrl.hostname);
-      console.log(requestUrl);
-      if(strippedHostname) {
-        classifyRequest = {
-          'operation': "SELECT",
-          'query': `ld.rowid
-                    FROM list_value AS lv
-                    INNER JOIN list_detail AS ld ON lv.list_detail_rowid = ld.rowid
-                    WHERE lv.host LIKE ? OR lv.host LIKE ?`,
-          'values': [requestUrl.hostname, strippedDomain],
-        };
-      } else {
-        classifyRequest = {
-          'operation': "SELECT",
-          'query': `ld.rowid
-                    FROM list_value AS lv
-                    INNER JOIN list_detail AS ld ON lv.list_detail_rowid = ld.rowid
-                    WHERE lv.host LIKE ?`,
-          'values': [requestUrl.hostname],
-        };
-      }
+      classifyRequest = {
+        'operation': "SELECT",
+        'query': `ld.rowid, lv.host
+                  FROM list_value AS lv
+                  INNER JOIN list_detail AS ld ON lv.list_detail_rowid = ld.rowid
+                  WHERE lv.host = ? OR lv.host = ?`,
+        'values': [requestUrl.hostname, strippedUrl.domain],
+      };
       classifyRequest = await DynamicDao.agnosticQuery(classifyRequest);
-      if(classifyRequest && classifyRequest.length) {
-        list_detail_rowid = classifyRequest[0].values;
-        console.log(list_detail_rowid);
+      if (classifyRequest && classifyRequest.length) {
+        list_detail_rowids = classifyRequest[0].values;
+        // console.log(requestUrl.hostname);
         //DO INSERTING INTO RECORD TABLE HERE
+        for (var row of list_detail_rowids) {
+          if (lastInsertedRowid != row[0]) {
+            insertClassication = {
+              'operation': "INSERT",
+              'query': `INTO web_request_detail_list_detail
+                        (web_request_detail_rowid, list_detail_rowid) VALUES (?, ?)
+                        RETURNING rowid`,
+              'values': [web_request_detail_rowid, row[0]],
+            };
+            await DynamicDao.agnosticQuery(insertClassication);
+            lastInsertedRowid = row[0];
+          }
+        }
       }
     } catch (e) {
       console.error(e);
       throw (e)
     } finally {
-      return list_detail_rowid;
+      return list_detail_rowids;
     }
   }
+
+  /*
+   * getWebRequestCategoriesMap()
+   *
+   * Query retrieves rowid of host that matches the name
+   *
+   * @return {ArrayList}     expiredSites      List of sites needing recache
+   */
+  static async getWebRequestCategoriesMap() {
+    let webRequestCategories;
+    let webRequestCategoriesMap;
+    try {
+      let getCategories = {
+        'operation': "SELECT",
+        'query': "name, rowid FROM web_request_category",
+      };
+      webRequestCategories = await DynamicDao.agnosticQuery(getCategories);
+      webRequestCategoriesMap = new Map(webRequestCategories[0].values);
+    } catch (e) {
+      console.error(e);
+      throw (e);
+    } finally {
+      return webRequestCategoriesMap;
+    }
+  }
+
+
 }

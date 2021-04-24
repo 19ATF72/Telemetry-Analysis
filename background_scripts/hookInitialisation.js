@@ -47,12 +47,12 @@ async function handleInstall(details) {
     Session.activeSites = await Session.getActiveSites(now);
     Session.expiredSites = await Session.getExpiredSites(now);
 
-
     console.log(Session.activeSites);
     console.log(Session.expiredSites);
 
     //LOAD CLASSIFICATIONS
     List.listCategoriesMap = await List.getListCategoriesMap();
+    WebRequest.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
 
     //LOAD LISTS FOR CLASIFICATION
     List.listsDownloaded = await List.retrieveLists();
@@ -62,11 +62,8 @@ async function handleInstall(details) {
     List.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(List.openCookieDatabase)
     console.log("OpenCookieDatabase downloaded = ", List.openCookieDatabaseDownloaded);
 
-    // testInsert = {
-    //   'operation': "SELECT",
-    //   'query': "rowid, * FROM web_request_detail_list_category",
-    // };
-    // result = await DynamicDao.agnosticQuery(testInsert);
+    List.whoTracksMeDownloaded = await List.retrieveWhoTracksMeDatabase(List.whoTracksMe);
+    console.log("WhoTracksMe downloaded = ", List.whoTracksMeDownloaded);
 
     let result;
     let testInsert = {
@@ -78,7 +75,14 @@ async function handleInstall(details) {
 
     testInsert = {
       'operation': "SELECT",
-      'query': "rowid, * FROM web_request_detail_list_category",
+      'query': "rowid, * FROM web_request_detail_list_detail",
+    };
+    result = await DynamicDao.agnosticQuery(testInsert);
+    console.log(result);
+
+    testInsert = {
+      'operation': "SELECT",
+      'query': "rowid, * FROM web_request_detail_web_request_category",
     };
     result = await DynamicDao.agnosticQuery(testInsert);
     console.log(result);
@@ -112,8 +116,6 @@ async function handleInstall(details) {
     // testList.listLoaded = await testList.addList();
     // testList.listLoaded = !(await List.removeList(testList.rowid));
     // console.log(testList.listLoaded);
-
-
   } catch (e) {
     console.error(e);
   } finally {
@@ -270,43 +272,37 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
  */
 async function handleWebRequestOnComplete(requestDetails) {
   if (!(requestDetails.fromCache)) {
-    //console.log(requestDetails);
+    let now = Date.now(); // Unix timestamp in milliseconds
+    let requestUrl = new URL(requestDetails.url);
+    let strippedUrl = psl.parse(requestUrl.hostname);
 
-    // if (requestDetails.documentUrl) {
-    //   console.log("This is not top level");
-    //   console.log("add documentUrl, ip, method");
-    // } else {
-    //   console.log("This is top level upsert host");
-    // }
-    let requestUrl = new URL(requestDetails.url)
+    let siteHostname;
+    if (!(requestDetails.documentUrl)) {
+      siteHostname = new URL(requestDetails.url);
+    } else {
+      siteHostname = new URL(requestDetails.documentUrl);
+    }
 
-    WebRequest.insertRequest(requestDetails, requestUrl, List.listCategoriesMap);
-    list_detail_rowid = WebRequest.classifyRequestByHostname(requestUrl);
-    //Session.getHostRowid(hostname, now)
+    if (siteHostname.protocol == "moz-extension:") {
+      siteHostname.hostname = "www.expired.org";
+    }
 
-    // let result;
-    // let testInsert = {
-    //   'operation': "SELECT",
-    //   'query': "rowid, * FROM web_request_detail",
-    // };
-    // result = await DynamicDao.agnosticQuery(testInsert);
-    // console.log(result);
+    if (requestDetails.frameId) {
+      siteHostname = new URL(requestDetails.frameAncestors[requestDetails.frameAncestors.length-1].url);
+    }
 
-  } else {
-    // console.log("Loading from cache");
+    //console.log(siteHostname.hostname);
+    // console.log(requestDetails.url);
+    // console.log(strippedUrl);
+    //console.log(siteHostname.hostname);
+    // console.log(requestDetails);
+    // console.log(hostRowid);
+
+    let hostRowid = await Session.getHostRowid(siteHostname.hostname, now);
+    let web_request_detail_rowid = await WebRequest.insertRequest(requestDetails, requestUrl, hostRowid, WebRequest.webRequestCategoriesMap);
+    let list_detail_rowids = await WebRequest.classifyRequestByHostname(web_request_detail_rowid, requestUrl, strippedUrl, List.listCategoriesMap);
   }
-  //console.log(requestDetails.responseHeaders);
 }
-
-//TABLE WITH
-//FULL url
-//HOSTNAME urlid
-//CLASSIFICATION
-
-//IF(HISTORY.SITENOTSEEN):
-
-//ALSO NEED A CONDITIONAL IN THE HOOK TO CHECK FOR HOSTNAME URLID
-
 
 
 // Need to recall function on second page reload and compare count of site.
