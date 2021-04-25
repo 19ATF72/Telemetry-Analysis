@@ -40,8 +40,12 @@ async function handleInstall(details) {
 
     //Must be called before running any db methods
     DynamicDao.SQL = await DynamicDao.initSqlJs(DynamicDao.config);
+
     DynamicDao.dbCreated = await DynamicDao.createDatabase(now);
-    DynamicDao.DB = await DynamicDao.retrieveDatabase();
+    DynamicDao.DB = await DynamicDao.retrieveDatabase(DynamicDao.name);
+
+    DynamicDao.dbCreated = await DynamicDao.createExternalDatabase(List.whoTracksMe);
+    DynamicDao.TRACKER_DB = await DynamicDao.retrieveDatabase(DynamicDao.externalDB);
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT
     Session.activeSites = await Session.getActiveSites(now);
@@ -65,38 +69,18 @@ async function handleInstall(details) {
     List.whoTracksMeDownloaded = await List.retrieveWhoTracksMeDatabase(List.whoTracksMe);
     console.log("WhoTracksMe downloaded = ", List.whoTracksMeDownloaded);
 
-    let result;
-    let testInsert = {
-      'operation': "SELECT",
-      'query': "rowid, * FROM web_request_detail",
-    };
-    result = await DynamicDao.agnosticQuery(testInsert);
-    console.log(result);
 
-    testInsert = {
-      'operation': "SELECT",
-      'query': "rowid, * FROM web_request_detail_list_detail",
-    };
-    result = await DynamicDao.agnosticQuery(testInsert);
-    console.log(result);
-
-    testInsert = {
-      'operation': "SELECT",
-      'query': "rowid, * FROM web_request_detail_web_request_category",
-    };
-    result = await DynamicDao.agnosticQuery(testInsert);
-    console.log(result);
-
-    // testInsert = {
+    // let result;
+    // let testInsert = {
     //   'operation': "SELECT",
-    //   'query': "rowid, * FROM list_value",
+    //   'query': "rowid, * FROM web_request_detail",
     // };
     // result = await DynamicDao.agnosticQuery(testInsert);
     // console.log(result);
     //
     // testInsert = {
     //   'operation': "SELECT",
-    //   'query': "rowid, * FROM cookie_name_classification",
+    //   'query': "rowid, * FROM web_request_detail_list_detail",
     // };
     // result = await DynamicDao.agnosticQuery(testInsert);
     // console.log(result);
@@ -271,7 +255,7 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
  * @param {Object}    tabInfo        Contains new state of tab
  */
 async function handleWebRequestOnComplete(requestDetails) {
-  if (!(requestDetails.fromCache)) {
+  if (!(requestDetails.fromCache) && DynamicDao.DB) {
     let now = Date.now(); // Unix timestamp in milliseconds
     let requestUrl = new URL(requestDetails.url);
     let strippedUrl = psl.parse(requestUrl.hostname);

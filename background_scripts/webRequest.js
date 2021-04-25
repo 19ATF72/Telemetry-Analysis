@@ -145,5 +145,46 @@ class WebRequest {
     }
   }
 
+  // WhoTracksMe RELATED CODE
+  // testInsert = {
+  //   'operation': "SELECT",
+  //   'query': "rowid, * FROM categories",
+  // };
+  // result = await DynamicDao.externalAgnosticQuery(testInsert);
+  // console.log(result);
+  //
+  // //CONTAINS THE INFORMATION ABOUT THE TOP LEVEL ORGANISATION THAT CONTROLS
+  // //THE SUBORGANISATIONS, GET TO IT VIA "company_id" in trackers table
+  // testInsert = {
+  //   'operation': "SELECT",
+  //   'query': "rowid, * FROM companies",
+  // };
+  // result = await DynamicDao.externalAgnosticQuery(testInsert);
+  // console.log(result);
+  //
+  // //CONTAINS THE ACTUAL URL THAT WOULD MATCH A SUBORGANISATIONS
+  // //USE THIS TO MATCH THE ONCOMPLETE VALUE WITH THE WHOLE DATABASE
+  // //USE strippedDomain.domain, WILL PROVIDE LINK TO TRACKERS
+  // testInsert = {
+  //   'operation': "SELECT",
+  //   'query': "* FROM tracker_domains",
+  // };
+  // result = await DynamicDao.externalAgnosticQuery(testInsert);
+  // console.log(result);
+  //
+  // //TRACKERS IS THE SUBORGANISATIONS THAT LINK TO COMPANIES VIA ID
+  // //CONTAINS DETAILS ABOUT THE SUBORGANISATIONS
+  // //GET TO IT VIA TRACKER_DOMAINS -> ID IDENTIFIER
+  // //CONTAINS VERY USEFUL FIELD [5] "company_id" THAT LINKS SUBORGS TO MAIN ORG
+  // testInsert = {
+  //   'operation': "SELECT",
+  //   'query': "* FROM trackers",
+  // };
+  // result = await DynamicDao.externalAgnosticQuery(testInsert);
+  // console.log(result);
+  //
+  // //MAKE SUPER QUERY THAT RETRIEVES TRACKER_DOMAINS BASED ON strippedDomain
+  // //JOIN WITH OTHER TABLES ON tracker id & company ID to retrieve info for
+  // //display
 
 }

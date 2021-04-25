@@ -7,7 +7,8 @@ class List {
   static listsDownloaded = false;
   static expiredListsUpdated = false;
   static openCookieDatabase = 'https://raw.githubusercontent.com/jkwakman/Open-Cookie-Database/master/open-cookie-database.csv';
-  static whoTracksMe = 'https://raw.githubusercontent.com/ghostery/whotracks.me/master/whotracksme/data/assets/trackerdb.sql';
+  //static whoTracksMe = 'https://raw.githubusercontent.com/ghostery/whotracks.me/master/whotracksme/data/assets/trackerdb.sql';
+  static whoTracksMe = 'https://github.com/19ATF72/trackersListSQLite/blob/master/data.sqlite?raw=true'
   static openCookieDatabaseDownloaded = false;
   static whoTracksMeDownloaded = false;
   static listCategoriesMap = [];
@@ -139,20 +140,7 @@ class List {
    * @return {boolean}     success      outcome of operation
    */
   static async retrieveWhoTracksMeDatabase(sourceURL) {
-    let results = await List.parseDataFromRemoteSQL(sourceURL, false);
-    console.log(results);
     try {
-      // for (var row of results.data) {
-      //   if (row.ID) {
-      //     let insertListValue = {
-      //       'operation': "INSERT",
-      //       'query': `INTO cookie_name_classification (id, platform, category, name, domain, description, retention_period, data_controller, gdpr_portal, wildcard_match)
-      //           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? , ?)`,
-      //       'values': [row.ID, row.Platform, row.Category, row["Cookie / Data Key name"], row.Domain, row.Description, row["Retention period"], row["Data Controller"], row["User Privacy & GDPR Rights Portals"], parseInt(row["Wildcard match"])],
-      //     };
-      //     await DynamicDao.agnosticQuery(insertListValue);
-      //   }
-      // }
     } catch (e) {
       console.error(e);
       throw (e)
@@ -175,30 +163,6 @@ class List {
         download: true,
         comments: "#",
         delimitersToGuess: [',', '\t', '|', ';', ' ', Papa.RECORD_SEP, Papa.UNIT_SEP],
-        complete(results, file) {
-          resolve(results)
-        },
-        error(err, file) {
-          reject(err)
-        }
-      })
-    })
-  }
-
-  /*
-   * parseDataFromRemoteSQL()
-   *
-   * performs query to retrieve active sites from database to avoid re-caching
-   *
-   * @return {ArrayList}     cookies      List of all cookies for site
-   */
-  static async parseDataFromRemoteSQL(sourceURL, header) {
-    return new Promise((resolve, reject) => {
-      Papa.parse(sourceURL, {
-        header: header,
-        download: true,
-        comments: "#",
-        delimiter: ");",
         complete(results, file) {
           resolve(results)
         },

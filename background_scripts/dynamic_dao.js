@@ -15,7 +15,8 @@ class DynamicDao {
     this.db = db;
   }
 
-  static name = "sqlite"
+  static name = "sqlite";
+  static externalDB = "trackerDb";
   static config = {
     locateFile: filename => `../node_modules/sql.js/dist/${filename}`
   };
@@ -23,6 +24,7 @@ class DynamicDao {
   static localforage = window.localforage;
   static SQL = null;
   static DB = null;
+  static TRACKER_DB = null;
   static dbCreated = false;
 
   /*
@@ -102,15 +104,14 @@ class DynamicDao {
       var loadDb = await DynamicDao.localforage.getItem(DynamicDao.name);
       //console.log("DynamicDao - createDatabase - localforage attempted retrieval");
       if (loadDb) {
-        //console.log("DynamicDao - createDatabase - db loaded from storage");
+        // console.log("DynamicDao - createDatabase - db loaded from storage");
         //Load db from memory
-        var db = new DynamicDao.SQL.Database(DynamicDao.toBinArray(loadDb));
+        var db = await new DynamicDao.SQL.Database(DynamicDao.toBinArray(loadDb));
       } else {
-        //console.log("DynamicDao - createDatabase - creating db");
+        // console.log("DynamicDao - createDatabase - creating db");
         //Create the database
-        var db = new DynamicDao.SQL.Database();
+        var db = await new DynamicDao.SQL.Database();
         let expires = DynamicDao.createExpires();
-        //console.log(db);
 
         //SESSION
         db.run(`CREATE TABLE session (
@@ -265,13 +266,45 @@ class DynamicDao {
         //Use statement iterator to run the whole file in one go.
       }
     } catch (e) {
+      console.error(e);
       throw (e);
     } finally {
       // save
-      await DynamicDao.localforage.setItem(this.name, DynamicDao.toBinString(db.export()));
-      db.close();
+      await DynamicDao.localforage.setItem(DynamicDao.name, DynamicDao.toBinString(db.export()));
+      //db.close();
     }
     return true; //TODO: Might not need to return dead db instead just true?
+  }
+
+  /*
+   * createDatabase()
+   *
+   * Creates database in sql.js and persists it to indexedDB
+   *
+   * @param {string}      name         Name for the new database
+   *
+   * @return {boolean}    success         Returns outcome of the operation
+   */
+  static async createExternalDatabase(location) {
+    try {
+      let loadTrackerDb = await DynamicDao.localforage.getItem(DynamicDao.externalDB);
+      if (loadTrackerDb) {
+        //Load db from memory
+        var trackerDb = await new DynamicDao.SQL.Database(DynamicDao.toBinArray(loadTrackerDb));
+      } else {
+        // LOADING THE WhoTracksMe DATABASE FROM SERVER
+        let dataPromise = fetch(location).then(res => res.arrayBuffer());
+        let buf = await dataPromise;
+        var trackerDb = await new DynamicDao.SQL.Database(await new Uint8Array(buf));
+      }
+    } catch (e) {
+      console.error(e);
+      //throw (e);
+    } finally {
+      await DynamicDao.localforage.setItem(DynamicDao.externalDB, DynamicDao.toBinString(trackerDb.export()));
+      //trackerDb.close();
+    }
+    return true;
   }
 
   /*
@@ -283,10 +316,10 @@ class DynamicDao {
    *
    * @return {boolean}    success         Returns outcome of the operation
    */
-  static async retrieveDatabase() {
+  static async retrieveDatabase(name) {
     try {
       //console.group("DynamicDao - retrieveDatabase");
-      var loadDb = await DynamicDao.localforage.getItem(DynamicDao.name);
+      var loadDb = await DynamicDao.localforage.getItem(name);
       if (loadDb) {
         //console.log("DynamicDao - retrieveDatabase - db loaded from storage");
         //Load db from memory
@@ -347,6 +380,43 @@ class DynamicDao {
     }
   }
 
+  /** NEEDS TO BE CONVERTED TO JUST USE AGNOSTIC QUERY AND PASS THE DB TO USE **/
+  /*
+   * externalAgnosticQuery()
+   *
+   * allows for performing a dynamic query
+   *
+   * @param {Array}     statement        Contains parts to build statement
+   *
+   * @return {}         values           Returns outcome of the operation
+   */
+  static async externalAgnosticQuery(statement) {
+    try {
+      var rs = DynamicDao.TRACKER_DB.exec(statement['operation'] + ' ' + statement['query'],
+        statement['values']);
+      switch (statement['operation']) {
+        case 'SELECT':
+          break;
+        case 'INSERT':
+        case 'UPDATE':
+          if (rs.length) {
+            rs = rs[0].values[0][0];
+          } else {
+            rs = null;
+          }
+          case 'DELETE':
+            break;
+          default:
+            throw new Error("DynamicDao - externalAgnosticQuery - Invalid operation");
+      }
+    } catch (e) {
+      console.error(e);
+      throw (e)
+    } finally {
+      return rs;
+    }
+  }
+
   /*
    * persistDatabase()
    *
@@ -360,6 +430,7 @@ class DynamicDao {
     try {
       //console.group("DynamicDao - persistDatabase");
       await DynamicDao.localforage.setItem(DynamicDao.name, DynamicDao.toBinString(DynamicDao.DB.export()));
+      await DynamicDao.localforage.setItem(DynamicDao.externalDB, DynamicDao.toBinString(DynamicDao.externalDB.export()));
     } catch (e) {
       throw (e);
       throw new Error("DynamicDao - retrieveDatabase - Could not persist DB")
@@ -378,6 +449,7 @@ class DynamicDao {
   static async closeDatabase() {
     try {
       DynamicDao.DB.close();
+      DynamicDao.externalDB.close();
     } catch (e) {
       throw (e);
       throw new Error("DynamicDao - closeDatabase - Closing database failed")
