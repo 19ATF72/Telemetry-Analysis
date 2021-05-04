@@ -75,7 +75,7 @@ class DynamicDao {
    *
    * Returns expiry time from date passed
    *
-   * @param {String}         str         String version of the database
+   * @param {Integer}         Int         Epoch time to generate future time for
    *
    * @return {Uint8Array}    arr         Converted array version of database
    */
@@ -99,6 +99,7 @@ class DynamicDao {
    * @return {boolean}    success         Returns outcome of the operation
    */
   static async createDatabase(now) {
+    let created = false;
     try {
       //console.group("DynamicDao - createDatabase");
       var loadDb = await DynamicDao.localforage.getItem(DynamicDao.name);
@@ -111,7 +112,7 @@ class DynamicDao {
         // console.log("DynamicDao - createDatabase - creating db");
         //Create the database
         var db = await new DynamicDao.SQL.Database();
-        let expires = DynamicDao.createExpires();
+        let expires = DynamicDao.createExpires(now);
 
         //SESSION
         db.run(`CREATE TABLE session (
@@ -148,7 +149,7 @@ class DynamicDao {
         //LIST
         db.run(`CREATE TABLE list_value (
           dns TEXT,
-          host INTEGER,
+          host TEXT,
           list_detail_rowid INTEGER,
           FOREIGN KEY(list_detail_rowid) REFERENCES list_detail(rowid))`);
 
@@ -176,6 +177,21 @@ class DynamicDao {
           list_detail_rowid INTEGER REFERENCES list_detail(rowid))`);
 
         //WEB REQUEST
+        db.run(`CREATE TABLE web_request_detail (
+          frameId INTEGER,
+          ip TEXT,
+          method TEXT,
+          originUrl TEXT,
+          statusLine TEXT,
+          thirdParty INTEGER,
+          timeStamp INTEGER,
+          resourceUrl TEXT UNIQUE,
+          accessCount INTEGER)`);
+
+        db.run(`CREATE TABLE web_request_category (
+          name TEXT)`);
+
+        //WEB_REQUEST + SESSION
         db.run(`CREATE TABLE web_request_detail_session (
           session_rowid INTEGER,
           web_request_detail_rowid INTEGER,
@@ -184,20 +200,6 @@ class DynamicDao {
           CONSTRAINT composite_key
           UNIQUE (session_rowid, web_request_detail_rowid)
           ON CONFLICT IGNORE)`);
-
-        db.run(`CREATE TABLE web_request_detail (
-          frameId INTEGER,
-          ip TEXT,
-          method TEXT,
-          originUrl TEXT,
-          statusLine TEXT,
-          thirdParty BOOLEAN,
-          timeStamp INTEGER,
-          resourceUrl TEXT UNIQUE,
-          accessCount INTEGER)`);
-
-        db.run(`CREATE TABLE web_request_category (
-          name TEXT)`);
 
         //WEB_REQUEST + LIST_DETAIL
         db.run(`CREATE TABLE web_request_detail_list_detail (
@@ -214,14 +216,7 @@ class DynamicDao {
           CONSTRAINT composite_key
           UNIQUE (web_request_detail_rowid, web_request_category_rowid)
           ON CONFLICT IGNORE)`);
-
-
-        //separate the full path into 3 tables
-
-        //session - host
-        //path - full url
-        //resource - link to resource
-
+          
 
         //Insert list types
         db.run("INSERT INTO web_request_category (name) VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)",
@@ -264,16 +259,18 @@ class DynamicDao {
 
         //TODO: Modify this to get a text file with SLITE creating instructions
         //Use statement iterator to run the whole file in one go.
+        created = true;
+        await DynamicDao.localforage.setItem(DynamicDao.name, DynamicDao.toBinString(db.export()));
       }
     } catch (e) {
       console.error(e);
       throw (e);
     } finally {
       // save
-      await DynamicDao.localforage.setItem(DynamicDao.name, DynamicDao.toBinString(db.export()));
+      return created;
       //db.close();
     }
-    return true; //TODO: Might not need to return dead db instead just true?
+   //TODO: Might not need to return dead db instead just true?
   }
 
   /*

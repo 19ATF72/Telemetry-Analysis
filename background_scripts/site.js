@@ -191,8 +191,13 @@ class Site {
     let strippedDomain;
     let classifyCookie;
     let matchedValues = [];
+    let dommainMapping;
     try {
       for (var cookie of cookies) {
+        let matchedValue = {cookieName: cookie.name,
+                            cookieDomain: cookie.domain,
+                            cookieExpiration: cookie.expirationDate,
+                            cookieHostOnly: cookie.hostOnly};
         if(cookie.domain.startsWith('.')) {
           strippedDomain = cookie.domain.substring(1);
         }
@@ -200,11 +205,6 @@ class Site {
           strippedDomain = cookie.domain.slice(0, -1);
         }
         if(strippedDomain) {
-          classifyCookie = {
-            'operation': "SELECT",
-            'query': "rowid, * FROM list_value WHERE host LIKE ? OR host LIKE ?",
-            'values': [cookie.domain, strippedDomain],
-          };
           classifyCookie = {
             'operation': "SELECT",
             'query': `ld.rowid, ld.sourceRepo, ld.description,
@@ -233,14 +233,56 @@ class Site {
             'values': [cookie.domain],
           };
         }
-        //MAYBE HAVE THIS CLASIFY ONLY JOIN WITH THE DETAIL ASPECT
-        //LINK IT TO COOKIES THAT WAY
-        //SEPARATE QUERY THAT RETRIEVES THE MATCHES & DETAILS FOR DISPLAY
         classifyCookie = await DynamicDao.agnosticQuery(classifyCookie);
+
         if(classifyCookie && classifyCookie.length) {
-          let matchedValue = {cookieName: cookie.name, sitesMatched: classifyCookie[0].values};
-          matchedValues.push(matchedValue);
+          matchedValue.sitesMatched = classifyCookie[0].values;
         }
+
+        let classifyCookieByName = {
+          'operation': "SELECT",
+          'query': `rowid, platform, category, name, domain, description, retention_period, data_controller, gdpr_portal
+                    FROM cookie_name_classification
+                    WHERE name = ?`,
+          'values': [cookie.name],
+        };
+        classifyCookieByName = await DynamicDao.agnosticQuery(classifyCookieByName);
+
+        if(classifyCookieByName && classifyCookieByName.length) {
+          matchedValue.nameClassification = classifyCookieByName[0].values;
+        }
+
+        if (strippedDomain) {
+          dommainMapping = {
+            'operation': "SELECT",
+            'query': `t.name, ca.name, t.website_url, co.name, co.description, co.privacy_url, co.website_url, co.country, co.privacy_contact
+                      FROM tracker_domains AS td
+                      INNER JOIN trackers AS t ON td.tracker = t.id
+                      INNER JOIN companies AS co ON t.company_id = co.id
+                      INNER JOIN categories AS ca ON t.category_id = ca.id
+                      WHERE td.domain = ?`,
+            'values': [strippedDomain],
+          };
+        } else {
+          dommainMapping = {
+            'operation': "SELECT",
+            'query': `t.name, ca.name, t.website_url, co.name, co.description, co.privacy_url, co.website_url, co.country, co.privacy_contact
+                      FROM tracker_domains AS td
+                      INNER JOIN trackers AS t ON td.tracker = t.id
+                      INNER JOIN companies AS co ON t.company_id = co.id
+                      INNER JOIN categories AS ca ON t.category_id = ca.id
+                      WHERE td.domain = ?`,
+            'values': [cookie.domain],
+          };
+        }
+        dommainMapping = await DynamicDao.externalAgnosticQuery(dommainMapping);
+
+        if(dommainMapping && dommainMapping.length) {
+          //cookie_name_classification_rowid = classifyCookieByName[0].values[0][0];
+          matchedValue.dommainMapping = dommainMapping[0].values;
+        }
+
+        matchedValues.push(matchedValue);
       }
     } catch (e) {
       console.error(e);

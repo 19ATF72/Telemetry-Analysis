@@ -133,23 +133,6 @@ class List {
   }
 
   /*
-   * retrieveOpenCookieDatabase()
-   *
-   * retrieves and inserts data from Open Database Project CSV file
-   *
-   * @return {boolean}     success      outcome of operation
-   */
-  static async retrieveWhoTracksMeDatabase(sourceURL) {
-    try {
-    } catch (e) {
-      console.error(e);
-      throw (e)
-    } finally {
-      return true;
-    }
-  }
-
-  /*
    * parseDataFromRemoteCSV()
    *
    * performs query to retrieve active sites from database to avoid re-caching

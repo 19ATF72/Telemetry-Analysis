@@ -145,6 +145,62 @@ class WebRequest {
     }
   }
 
+
+  static async getWebRequestClassification(hostRowid) {
+    let classifyWebRequest;
+    let matchedValues = [];
+    let dommainMapping;
+    try {
+
+      let webRequestsForHostId = {
+        'operation': "SELECT",
+        'query': `wrd.rowid, wrd.*
+                  FROM web_request_detail AS wrd
+                  INNER JOIN web_request_detail_session AS wrds ON wrd.rowid = wrds.web_request_detail_rowid
+                  INNER JOIN session AS s ON wrds.session_rowid = s.rowid
+                  WHERE s.rowid = ?`,
+        'values': [hostRowid],
+      };
+      webRequestsForHostId = await DynamicDao.agnosticQuery(webRequestsForHostId);
+      for (var webRequest of webRequestsForHostId[0].values) {
+        let matchedValue = {webRequestRowid: webRequest[0],
+                            webRequestFrameId: webRequest[1],
+                            webRequestIp: webRequest[2],
+                            webRequestMethod: webRequest[3],
+                            webRequestOriginUrl: webRequest[4],
+                            webRequestStatusLine: webRequest[5],
+                            webRequestThirdParty: webRequest[6],
+                            webRequestTimeStamp: webRequest[7],
+                            webRequestResourceUrl: webRequest[8],
+                            webRequestAccessCount: webRequest[9]};
+        let url = psl.parse(matchedValue.webRequestResourceUrl);
+
+        dommainMapping = {
+          'operation': "SELECT",
+          'query': `t.name, ca.name, t.website_url, co.name, co.description, co.privacy_url, co.website_url, co.country, co.privacy_contact
+                    FROM tracker_domains AS td
+                    INNER JOIN trackers AS t ON td.tracker = t.id
+                    INNER JOIN companies AS co ON t.company_id = co.id
+                    INNER JOIN categories AS ca ON t.category_id = ca.id
+                    WHERE td.domain = ?`,
+          'values': [url.domain],
+        };
+        dommainMapping = await DynamicDao.externalAgnosticQuery(dommainMapping);
+
+        if(dommainMapping && dommainMapping.length) {
+          matchedValue.dommainMapping = dommainMapping[0].values;
+        }
+
+        matchedValues.push(matchedValue);
+      }
+    } catch (e) {
+      console.error(e);
+      throw (e)
+    } finally {
+      return matchedValues;
+    }
+  }
+
   // WhoTracksMe RELATED CODE
   // testInsert = {
   //   'operation': "SELECT",

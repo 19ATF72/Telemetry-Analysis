@@ -1,0 +1,94 @@
+CREATE TABLE [session] (
+	hostname TEXT UNIQUE,
+	loggedDate INTEGER,
+	expirationDate INTEGER,
+	visitCount INTEGER,
+	lastAccessed INTEGER);
+          
+CREATE TABLE [cookie] (
+	domain TEXT,
+	expirationDate INTEGER,
+	hostOnly INTEGER,
+	name TEXT,
+	value TEXT,
+	session_rowid INTEGER,
+	cookie_name_classification_rowid INTEGER,
+	FOREIGN KEY(session_rowid) REFERENCES session(rowid)
+	FOREIGN KEY(cookie_name_classification_rowid) REFERENCES cookie_name_classification(rowid));
+
+CREATE TABLE [cookie_name_classification] (
+          id TEXT,
+          platform TEXT,
+          category TEXT,
+          name TEXT,
+          domain TEXT,
+          description TEXT,
+          retention_period TEXT,
+          data_controller TEXT,
+          gdpr_portal TEXT,
+          wildcard_match INTEGER);
+          
+CREATE TABLE [list_value] (
+	dns TEXT,
+	host INTEGER,
+	list_detail_rowid INTEGER,
+	FOREIGN KEY(list_detail_rowid) REFERENCES list_detail(rowid));
+	
+CREATE TABLE [list_category] (
+          name TEXT);
+          
+CREATE TABLE [list_accuracy] (
+          name TEXT);
+          
+CREATE TABLE [list_detail] (
+          list_category_rowid INTEGER,
+          list_accuracy_rowid INTEGER,
+          sourceRepo TEXT,
+          description TEXT,
+          sourceURL TEXT,
+          lastUpdated INTEGER,
+          expirationDate INTEGER,
+          containsDNS INTEGER,
+          FOREIGN KEY(list_category_rowid) REFERENCES list_category(rowid),
+          FOREIGN KEY(list_accuracy_rowid) REFERENCES list_accuracy(rowid));
+          
+CREATE TABLE [cookie_list_detail] (
+          cookie_rowid INTEGER REFERENCES cookie(rowid),
+          list_detail_rowid INTEGER REFERENCES list_detail(rowid));
+          
+CREATE TABLE [web_request_detail_session] (
+          session_rowid INTEGER,
+          web_request_detail_rowid INTEGER,
+          FOREIGN KEY(session_rowid) REFERENCES session(rowid),
+          FOREIGN KEY(web_request_detail_rowid) REFERENCES web_request_detail(rowid)
+          CONSTRAINT composite_key
+          UNIQUE (session_rowid, web_request_detail_rowid)
+          ON CONFLICT IGNORE);
+          
+CREATE TABLE [web_request_detail] (
+          frameId INTEGER,
+          ip TEXT,
+          method TEXT,
+          originUrl TEXT,
+          statusLine TEXT,
+          thirdParty BOOLEAN,
+          timeStamp INTEGER,
+          resourceUrl TEXT UNIQUE,
+          accessCount INTEGER);
+          
+CREATE TABLE [web_request_category] (
+          name TEXT);
+          
+CREATE TABLE [web_request_detail_list_detail] (
+          web_request_detail_rowid INTEGER REFERENCES web_request_detail(rowid),
+          list_detail_rowid INTEGER REFERENCES list_detail(rowid),
+          CONSTRAINT composite_key
+          UNIQUE (web_request_detail_rowid, list_detail_rowid)
+          ON CONFLICT IGNORE);
+          
+CREATE TABLE [web_request_detail_web_request_category] (
+          web_request_detail_rowid INTEGER REFERENCES web_request_detail(rowid),
+          web_request_category_rowid INTEGER REFERENCES web_request_category(rowid),
+          CONSTRAINT composite_key
+          UNIQUE (web_request_detail_rowid, web_request_category_rowid)
+          ON CONFLICT IGNORE);

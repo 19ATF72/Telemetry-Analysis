@@ -37,7 +37,7 @@
     "browser_style": false,
     "default_icon": "icons/elementor-brands.svg",
     "default_title": "Telemetry Analysis",
-    "default_popup": "browserAction/telemetry_analysis_template.html"
+    "default_popup": "browserAction/popup_view.html"
   },
 
   "web_accessible_resources": [

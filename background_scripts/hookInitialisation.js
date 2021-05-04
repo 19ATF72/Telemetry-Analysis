@@ -16,6 +16,9 @@ browser.tabs.onUpdated.addListener(handleUpdated);
 // Hook when webRequest is made on page
 browser.webRequest.onCompleted.addListener(handleWebRequestOnComplete, {urls: ["<all_urls>"]});
 
+// Hook when a message is sent from the
+browser.runtime.onMessage.addListener(handleMessage);
+
 //When cookie is updated
 // browser.cookies.onChanged.addListener(handleChanged);
 
@@ -63,20 +66,25 @@ async function handleInstall(details) {
     console.log("Lists downloaded = ", List.listsDownloaded);
 
     //LOAD OPEN COOKIE DATABASE
-    List.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(List.openCookieDatabase)
+    List.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(List.openCookieDatabase);
     console.log("OpenCookieDatabase downloaded = ", List.openCookieDatabaseDownloaded);
-
-    List.whoTracksMeDownloaded = await List.retrieveWhoTracksMeDatabase(List.whoTracksMe);
-    console.log("WhoTracksMe downloaded = ", List.whoTracksMeDownloaded);
-
 
     // let result;
     // let testInsert = {
     //   'operation': "SELECT",
-    //   'query': "rowid, * FROM web_request_detail",
+    //   'query': `id, i.title AS item_title, t.tag_array
+    //             FROM   items      i
+    //             JOIN  (  -- or LEFT JOIN ?
+    //                SELECT it.item_id AS id, array_agg(t.title) AS tag_array
+    //                FROM   items_tags it
+    //                JOIN   tags       t  ON t.id = it.tag_id
+    //                GROUP  BY it.item_id
+    //              ) t USING (id);`,
+    //   'values': ,
     // };
     // result = await DynamicDao.agnosticQuery(testInsert);
     // console.log(result);
+
     //
     // testInsert = {
     //   'operation': "SELECT",
@@ -125,6 +133,7 @@ async function handleStartup() {
     //Must be called before running any db methods
     DynamicDao.SQL = await DynamicDao.initSqlJs(DynamicDao.config);
     DynamicDao.DB = await DynamicDao.retrieveDatabase();
+    DynamicDao.TRACKER_DB = await DynamicDao.retrieveDatabase(DynamicDao.externalDB);
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT
     let now = Date.now(); // Unix timestamp in milliseconds
@@ -134,18 +143,22 @@ async function handleStartup() {
     console.log(Session.activeSites);
     console.log(Session.expiredSites);
 
-    let getCookies = {
-      'operation': "SELECT",
-      'query': "* FROM cookie",
-    };
-    result = await DynamicDao.agnosticQuery(getCookies);
-    console.log(result);
+    //LOAD CLASSIFICATIONS
+    List.listCategoriesMap = await List.getListCategoriesMap();
+    WebRequest.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
 
-    let getSession = {
-      'operation': "SELECT",
-      'query': "* FROM session",
-    };
-    result = await DynamicDao.agnosticQuery(getSession);
+    // let getCookies = {
+    //   'operation': "SELECT",
+    //   'query': "* FROM cookie",
+    // };
+    // result = await DynamicDao.agnosticQuery(getCookies);
+    // console.log(result);
+    //
+    // let getSession = {
+    //   'operation': "SELECT",
+    //   'query': "* FROM session",
+    // };
+    // result = await DynamicDao.agnosticQuery(getSession);
     console.log(result);
   } catch (e) {
     console.error(e);
@@ -255,38 +268,116 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
  * @param {Object}    tabInfo        Contains new state of tab
  */
 async function handleWebRequestOnComplete(requestDetails) {
-  if (!(requestDetails.fromCache) && DynamicDao.DB) {
-    let now = Date.now(); // Unix timestamp in milliseconds
-    let requestUrl = new URL(requestDetails.url);
-    let strippedUrl = psl.parse(requestUrl.hostname);
+  try {
+    if (!(requestDetails.fromCache) && DynamicDao.DB) {
+      let now = Date.now(); // Unix timestamp in milliseconds
+      let requestUrl = new URL(requestDetails.url);
+      let strippedUrl = psl.parse(requestUrl.hostname);
 
-    let siteHostname;
-    if (!(requestDetails.documentUrl)) {
-      siteHostname = new URL(requestDetails.url);
-    } else {
-      siteHostname = new URL(requestDetails.documentUrl);
+      let siteHostname;
+      if (!(requestDetails.documentUrl)) {
+        siteHostname = new URL(requestDetails.url);
+      } else {
+        siteHostname = new URL(requestDetails.documentUrl);
+      }
+
+      if (siteHostname.protocol == "moz-extension:") {
+        siteHostname.hostname = "www.expired.org";
+      }
+
+      if (requestDetails.frameId) {
+        siteHostname = new URL(requestDetails.frameAncestors[requestDetails.frameAncestors.length-1].url);
+      }
+
+      let hostRowid = await Session.getHostRowid(siteHostname.hostname, now);
+      let web_request_detail_rowid = await WebRequest.insertRequest(requestDetails, requestUrl, hostRowid, WebRequest.webRequestCategoriesMap);
+      let list_detail_rowids = await WebRequest.classifyRequestByHostname(web_request_detail_rowid, requestUrl, strippedUrl, List.listCategoriesMap);
     }
-
-    if (siteHostname.protocol == "moz-extension:") {
-      siteHostname.hostname = "www.expired.org";
-    }
-
-    if (requestDetails.frameId) {
-      siteHostname = new URL(requestDetails.frameAncestors[requestDetails.frameAncestors.length-1].url);
-    }
-
-    //console.log(siteHostname.hostname);
-    // console.log(requestDetails.url);
-    // console.log(strippedUrl);
-    //console.log(siteHostname.hostname);
-    // console.log(requestDetails);
-    // console.log(hostRowid);
-
-    let hostRowid = await Session.getHostRowid(siteHostname.hostname, now);
-    let web_request_detail_rowid = await WebRequest.insertRequest(requestDetails, requestUrl, hostRowid, WebRequest.webRequestCategoriesMap);
-    let list_detail_rowids = await WebRequest.classifyRequestByHostname(web_request_detail_rowid, requestUrl, strippedUrl, List.listCategoriesMap);
+  } catch (e) {
+    console.error(e);
+    throw (e)
+  } finally {
+    return true;
   }
 }
+
+/*
+ * handleMessage() - hooks runtime.onMessage()
+ *
+ * Fired when a message is sent from anywhere in the system
+ *
+ * @param {Object}      request          Contents of message sent
+ * @param {Object}      sender           Origin of the message sent
+ * @param {Function}    sendResponse     Function to send response to message
+ */
+function handleMessage(request, sender, sendResponse) {
+  switch (request.operation) {
+    case 'popupControllerPageOpnened':
+      let url = new URL(request.activeTab);
+      let hostIdFufilled;
+      let cookiesFufilled;
+      let cookieClassificationFufilled;
+      let webRequestClassificationFufilled;
+      let hostsWithSameCookieNameFufilled;
+
+      //Refresh cookies in database
+      return Session.getHostRowidByName(url.hostname)
+      .then(function(hostRowid) {
+        hostIdFufilled = hostRowid;
+        return new Promise(function(resolve, reject) {
+          removed = Site.removeCookies(hostRowid);
+          resolve(removed);
+        });
+      })
+      .then(function(removed) {
+        return new Promise(function(resolve, reject) {
+          let cookies = Site.getCookies(url.href);
+          resolve(cookies);
+        });
+      })
+      .then(function(cookies) {
+        cookiesFufilled = cookies;
+        return new Promise(function(resolve, reject) {
+          let insertedRowids = Site.insertCookies(cookies, hostIdFufilled);
+          resolve(insertedRowids);
+        });
+      })
+      .then(function(insertedRowids) {
+        return new Promise(function(resolve, reject) {
+          let cookieClassification = Site.getCookieClassification(cookiesFufilled);
+          resolve(cookieClassification);
+        });
+      })
+      .then(function(cookieClassification) {
+        return new Promise(function(resolve, reject) {
+          cookieClassificationFufilled = cookieClassification;
+          let webRequestClassification = WebRequest.getWebRequestClassification(hostIdFufilled);
+          resolve(webRequestClassification);
+        });
+      })
+      .then(function(webRequestClassification) {
+        return new Promise(function(resolve, reject) {
+          webRequestClassificationFufilled = webRequestClassification;
+          let hostsWithSameCookieName = Session.getHostsByCookieName(cookiesFufilled, url.hostname);
+          resolve(hostsWithSameCookieName);
+        });
+      })
+      .then(function(hostsWithSameCookieName) {
+        return new Promise(function(resolve, reject) {
+          hostsWithSameCookieNameFufilled = hostsWithSameCookieName;
+          response = {cookieClassification: cookieClassificationFufilled, hostsWithSameCookieName: hostsWithSameCookieNameFufilled, webRequestClassification: webRequestClassificationFufilled};
+          resolve(response);
+        });
+      });
+      break;
+    default:
+      console.log("Message not implemented yet");
+      break;
+
+  }
+
+}
+
 
 
 // Need to recall function on second page reload and compare count of site.
