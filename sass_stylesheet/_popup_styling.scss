@@ -23,3 +23,19 @@ body {
 .reset:hover {
   background-color: #EAEA9D;
 }
+
+.spinner-border.spinner-border {
+  margin: 1px 1px 2px 1px;
+}
+
+.accordion-body {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  align-content: space-around;
+}
+
+.card.m-1.alert-warning{
+  border: 1px solid #664d03;
+}

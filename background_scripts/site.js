@@ -186,7 +186,6 @@ class Site {
    *
    * @return {ArrayList}     matchedValue      values from list_value
    */
-         //SEPARATE QUERY THAT RETRIEVES THE MATCHES & DETAILS FOR DISPLAY
   static async getCookieClassification(cookies) {
     let strippedDomain;
     let classifyCookie;
@@ -249,7 +248,7 @@ class Site {
         classifyCookieByName = await DynamicDao.agnosticQuery(classifyCookieByName);
 
         if(classifyCookieByName && classifyCookieByName.length) {
-          matchedValue.nameClassification = classifyCookieByName[0].values;
+          matchedValue.nameClassification = classifyCookieByName[0].values[0];
         }
 
         if (strippedDomain) {
@@ -279,7 +278,7 @@ class Site {
 
         if(dommainMapping && dommainMapping.length) {
           //cookie_name_classification_rowid = classifyCookieByName[0].values[0][0];
-          matchedValue.dommainMapping = dommainMapping[0].values;
+          matchedValue.dommainMapping = dommainMapping[0].values[0];
         }
 
         matchedValues.push(matchedValue);
@@ -313,6 +312,30 @@ class Site {
       throw (e)
     } finally {
       return newCount;
+    }
+  }
+
+  /*
+   * increaseVisitCount() //TODO: Might be better to put in Session, as operates on session table
+   *
+   * performs update query that retrieves the site record and increases count +1
+   *
+   * @return {Integer}     newCount      new amount of times visited
+   */
+  static async getVisitCountById(hostId) {
+    let getCount;
+    try {
+        getCount = {
+          'operation': "SELECT",
+          'query': "visitCount FROM session WHERE rowid = ?",
+          'values': [hostId]
+        };
+        getCount = await DynamicDao.agnosticQuery(getCount);
+    } catch (e) {
+      console.error(e);
+      throw (e)
+    } finally {
+      return getCount[0].values[0][0];
     }
   }
 

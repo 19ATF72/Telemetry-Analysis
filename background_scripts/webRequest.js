@@ -191,6 +191,27 @@ class WebRequest {
           matchedValue.dommainMapping = dommainMapping[0].values;
         }
 
+
+        classifyWebRequest = {
+          'operation': "SELECT",
+          'query': `ld.rowid, ld.sourceRepo, ld.description,
+                    lv.dns,
+                    lc.name,
+                    la.name
+                    FROM list_value AS lv
+                    INNER JOIN list_detail AS ld ON lv.list_detail_rowid = ld.rowid
+                    INNER JOIN list_category AS lc ON ld.list_category_rowid = lc.rowid
+                    INNER JOIN list_accuracy AS la ON ld.list_accuracy_rowid = la.rowid
+                    WHERE host LIKE ?`,
+          'values': [url.domain],
+        };
+
+        classifyWebRequest = await DynamicDao.agnosticQuery(classifyWebRequest);
+
+        if(classifyWebRequest && classifyWebRequest.length) {
+          matchedValue.listsMatched = classifyWebRequest[0].values;
+        }
+
         matchedValues.push(matchedValue);
       }
     } catch (e) {

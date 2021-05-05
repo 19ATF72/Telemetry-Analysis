@@ -316,6 +316,7 @@ function handleMessage(request, sender, sendResponse) {
       let url = new URL(request.activeTab);
       let hostIdFufilled;
       let cookiesFufilled;
+      let visitCountFufilled;
       let cookieClassificationFufilled;
       let webRequestClassificationFufilled;
       let hostsWithSameCookieNameFufilled;
@@ -344,6 +345,13 @@ function handleMessage(request, sender, sendResponse) {
       })
       .then(function(insertedRowids) {
         return new Promise(function(resolve, reject) {
+          let visitCount = Site.getVisitCountById(hostIdFufilled);
+          resolve(visitCount);
+        });
+      })
+      .then(function(visitCount) {
+        visitCountFufilled = visitCount
+        return new Promise(function(resolve, reject) {
           let cookieClassification = Site.getCookieClassification(cookiesFufilled);
           resolve(cookieClassification);
         });
@@ -365,7 +373,7 @@ function handleMessage(request, sender, sendResponse) {
       .then(function(hostsWithSameCookieName) {
         return new Promise(function(resolve, reject) {
           hostsWithSameCookieNameFufilled = hostsWithSameCookieName;
-          response = {cookieClassification: cookieClassificationFufilled, hostsWithSameCookieName: hostsWithSameCookieNameFufilled, webRequestClassification: webRequestClassificationFufilled};
+          response = {cookieClassification: cookieClassificationFufilled, hostsWithSameCookieName: hostsWithSameCookieNameFufilled, webRequestClassification: webRequestClassificationFufilled, visitCount: visitCountFufilled};
           resolve(response);
         });
       });
