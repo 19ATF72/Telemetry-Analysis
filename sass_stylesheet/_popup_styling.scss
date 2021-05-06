@@ -36,6 +36,16 @@ body {
   align-content: space-around;
 }
 
-.card.m-1.alert-warning{
+.card.m-1.alert-warning   {
   border: 1px solid #664d03;
+}
+
+.card-subtitle.tracking-list {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.card-subtitle.cookies-with-similar {
+  width: 70%;
+  word-wrap: break-word;
 }

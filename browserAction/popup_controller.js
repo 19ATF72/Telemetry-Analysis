@@ -137,7 +137,7 @@ function handleResponse(message) {
         card = $([
           "<div class='col-sm-4'>",
           "<div class='card m-1 " + nameClass + "'>",
-          "<a tabindex='" + index + "' id='card" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#card" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.nameClassification[2]) + ' - ' + sanitize(row.nameClassification[1]) + "' data-bs-content='" + sanitize(row.nameClassification[5]) + " <br /> <b>Domain:</b> " + sanitize(row.nameClassification[4]) + " <br /> <b>Retention period:</b> " + sanitize(row.nameClassification[6]) + " <br /> <b>Data handler:</b> " + sanitize(row.nameClassification[7]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.nameClassification[8]) + "'>" + sanitize(row.cookieName) + "</a>",
+          "<a tabindex='" + index + "' id='card" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#card" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.nameClassification[2]) + ' - ' + sanitize(row.nameClassification[1]) + "' data-bs-content='" + " <b>Description:</b> " + sanitize(row.nameClassification[5]) + " <br /> <b>Domain:</b> " + sanitize(row.nameClassification[4]) + " <br /> <b>Retention period:</b> " + sanitize(row.nameClassification[6]) + " <br /> <b>Data handler:</b> " + sanitize(row.nameClassification[7]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.nameClassification[8]) + "'>" + sanitize(row.cookieName) + "</a>",
           "<div class='card-body'>",
           "<p class='card-subtitle text-muted'>" + convertEpochToSpecificTimezone(row.cookieExpiration, +0) + "</p>",
           "<p class='card-subtitle'>" + row.cookieDomain + "</p> <br />",
@@ -152,7 +152,7 @@ function handleResponse(message) {
         card = $([
           "<div class='col-sm-4'>",
           "<div class='card m-1 " + nameClass + "'>",
-          "<a tabindex='" + index + "' id='card" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#card" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.nameClassification[2]) + ' - ' + sanitize(row.nameClassification[1]) + "' data-bs-content='" + sanitize(row.nameClassification[5]) + " <br /> <b>Domain:</b> " + sanitize(row.nameClassification[4]) + " <br /> <b>Retention period:</b> " + sanitize(row.nameClassification[6]) + " <br /> <b>Data handler:</b> " + sanitize(row.nameClassification[7]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.nameClassification[8]) + "'>" + sanitize(row.cookieName) + "</a>",
+          "<a tabindex='" + index + "' id='card" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#card" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.nameClassification[2]) + ' - ' + sanitize(row.nameClassification[1]) + "' data-bs-content='" + " <b>Description:</b> " + sanitize(row.nameClassification[5]) + " <br /> <b>Domain:</b> " + sanitize(row.nameClassification[4]) + " <br /> <b>Retention period:</b> " + sanitize(row.nameClassification[6]) + " <br /> <b>Data handler:</b> " + sanitize(row.nameClassification[7]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.nameClassification[8]) + "'>" + sanitize(row.cookieName) + "</a>",
           "<div class='card-body'>",
           "<p class='card-subtitle text-muted'>" + convertEpochToSpecificTimezone(row.cookieExpiration, +0) + "</p>",
           "<p class='card-subtitle'>" + row.cookieDomain + "</p>",
@@ -203,7 +203,7 @@ function handleResponse(message) {
           "<div class='card m-1'>",
           "<a tabindex='" + index + "' id='card" + index + "' class='card-header'>" + row.cookieName + "</a>",
           "<div class='card-body'>",
-          "<p class='card-subtitle'>" + hostList + "</p>",
+          "<p class='card-subtitle cookies-with-similar'>" + hostList + "</p>",
           "</div>",
           "</div>",
           "</div>"
@@ -240,7 +240,7 @@ function handleResponse(message) {
 
 
         for (let [lindex, list] of row.listsMatched.entries()) {
-          let webRequestSubtitle = $(["<p class='card-subtitle'>" + list[4] + " - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
+          let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
           // webRequestList.append(webRequestSubtitle);
           webRequestBelongsTo = $("#webRequestBody"+index+"");
           webRequestBelongsTo.append(webRequestSubtitle);
@@ -272,7 +272,7 @@ function handleResponse(message) {
         webRequestList.append(webRequestCard);
 
         for (let [lindex, list] of row.listsMatched.entries()) {
-          let webRequestSubtitle = $(["<p class='card-subtitle'>" + list[4] + " - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
+          let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
           webRequestBelongsTo = $("#webRequestBody"+index+"");
           webRequestBelongsTo.append(webRequestSubtitle);
         }
