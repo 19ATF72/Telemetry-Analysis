@@ -50,7 +50,7 @@ class Site {
         let insertCookie = {
           'operation': "INSERT",
           'query': "INTO cookie (domain, expirationDate, hostOnly, name, value, session_rowid, cookie_name_classification_rowid) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING rowid",
-          'values': [cookie.domain, cookie.expirationDate, cookie.hostOnly, cookie.name, cookie.value, hostId, cookie_name_classification_rowid],
+          'values': [cookie.domain, cookie.expirationDate, cookie.hostOnly, cookie.name, "cookie.value", hostId, cookie_name_classification_rowid],
         };
         cookie_rowid = await DynamicDao.agnosticQuery(insertCookie);
         all_rowid.push(cookie_rowid);
