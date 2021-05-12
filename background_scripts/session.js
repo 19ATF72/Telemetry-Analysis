@@ -1,8 +1,7 @@
 /**
  * Session - Micah Hobby - 17027531
  *
- * Handles recording of cookies / sites for the database.
- * TODO: Needs more fleshed out description
+ * Handles actions related to sites visited, inserting & updating hosts in a session
  **/
 class Session {
   static activeSites = [];
@@ -12,6 +11,8 @@ class Session {
    * getActiveSites()
    *
    * performs query to retrieve active sites from database to avoid re-caching
+   *
+   * @param {Integer}         now             Current epoch time
    *
    * @return {ArrayList}     activeSites      List of sites already crawled
    */
@@ -42,7 +43,9 @@ class Session {
    *
    * performs query to retrieve expired sites from database that need to be cached
    *
-   * @return {ArrayList}     expiredSites      List of sites needing recache
+   * @param {Integer}         now             Current epoch time
+   *
+   * @return {ArrayList}     expiredSitesList      List of sites needing recache
    */
   static async getExpiredSites(now) {
     let expiredSites = {
@@ -70,6 +73,9 @@ class Session {
    * getHostRowid()
    *
    * Query to insert a new site with details regarding to it
+   *
+   * @param {String}         hostname        Host to retrieve id for
+   * @param {Integer}        now             Current epoch time
    *
    * @return {Integer}     rowid      ID of record just inserted
    */
@@ -100,6 +106,9 @@ class Session {
    *
    * performs query to retrieve expired sites from database that need to be cached
    *
+   * @param {String}         hostname        Host to retrieve id for
+   * @param {Integer}        now             Current epoch time
+   *
    * @return {Integer}     rowid      id of host updated
    */
   static async updateHost(hostId, now) {
@@ -126,6 +135,8 @@ class Session {
    *
    * Query retrieves rowid of host that matches the name
    *
+   * @param {String}         hostname        Host to retrieve id for
+   *
    * @return {ArrayList}     expiredSites      List of sites needing recache
    */
   static async getHostRowidByName(hostname) {
@@ -151,7 +162,10 @@ class Session {
    *
    * Retrieves all hosts that have cookies with same name
    *
-   * @return {ArrayList}     hostnames      List of hostnames that share cookies
+   * @param {ArrayList}      cookies       List of cookies to search
+   * @param {Integer}        hostUrl       URL to match cookies to
+   *
+   * @return {ArrayList}     matchedCookies  List of hostnames that share cookies
    */
   static async getHostsByCookieName(cookies, hostUrl) {
     let matchedCookies = [];

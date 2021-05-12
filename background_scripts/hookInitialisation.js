@@ -69,31 +69,6 @@ async function handleInstall(details) {
     List.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(List.openCookieDatabase);
     console.log("OpenCookieDatabase downloaded = ", List.openCookieDatabaseDownloaded);
 
-    // let result;
-    // let testInsert = {
-    //   'operation': "SELECT",
-    //   'query': `id, i.title AS item_title, t.tag_array
-    //             FROM   items      i
-    //             JOIN  (  -- or LEFT JOIN ?
-    //                SELECT it.item_id AS id, array_agg(t.title) AS tag_array
-    //                FROM   items_tags it
-    //                JOIN   tags       t  ON t.id = it.tag_id
-    //                GROUP  BY it.item_id
-    //              ) t USING (id);`,
-    //   'values': ,
-    // };
-    // result = await DynamicDao.agnosticQuery(testInsert);
-    // console.log(result);
-
-    //
-    // testInsert = {
-    //   'operation': "SELECT",
-    //   'query': "rowid, * FROM web_request_detail_list_detail",
-    // };
-    // result = await DynamicDao.agnosticQuery(testInsert);
-    // console.log(result);
-
-
     // Operation for removing expired lists and reloading them
     // List.expiredListsUpdated = await List.updateExpiredLists(now);
     // console.log("Lists updated = ", List.expiredListsUpdated);
@@ -112,7 +87,6 @@ async function handleInstall(details) {
     console.error(e);
   } finally {
     await DynamicDao.persistDatabase();
-    //await DynamicDao.closeDatabase();
     return true;
   }
 
@@ -146,25 +120,10 @@ async function handleStartup() {
     //LOAD CLASSIFICATIONS
     List.listCategoriesMap = await List.getListCategoriesMap();
     WebRequest.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
-
-    // let getCookies = {
-    //   'operation': "SELECT",
-    //   'query': "* FROM cookie",
-    // };
-    // result = await DynamicDao.agnosticQuery(getCookies);
-    // console.log(result);
-    //
-    // let getSession = {
-    //   'operation': "SELECT",
-    //   'query': "* FROM session",
-    // };
-    // result = await DynamicDao.agnosticQuery(getSession);
     console.log(result);
   } catch (e) {
     console.error(e);
   } finally {
-    //await DynamicDao.persistDatabase(); //No need to persist
-    //await DynamicDao.closeDatabase();
     return true;
   }
 }
@@ -234,11 +193,8 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
 
           //THIS IS THE CODE FOR RETRIEVING SITES FOR IDENTIFIERS
           // console.log("Retrieving sites with same cookie name identifier");
-          // console.log(cookies);
-          // console.log(url.hostname);
           // let matchedHosts = await Session.getHostsByCookieName(cookies, url.hostname);
           // console.log(matchedHosts);
-
 
         } else {
           // console.log("Site already in local memory");
@@ -263,9 +219,7 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
  *
  * Fired when a webRequest is made for a page
  *
- * @param {Integer}   tabId          Id of tab ithat was updated
- * @param {Object}    changeInfo     Contains properties that have changed
- * @param {Object}    tabInfo        Contains new state of tab
+ * @param {Object}    requestDetails         Contains webRequest information
  */
 async function handleWebRequestOnComplete(requestDetails) {
   try {
@@ -304,7 +258,8 @@ async function handleWebRequestOnComplete(requestDetails) {
 /*
  * handleMessage() - hooks runtime.onMessage()
  *
- * Fired when a message is sent from anywhere in the system
+ * Fired when a message is sent from anywhere in the system, used for sending
+ * information to the display
  *
  * @param {Object}      request          Contents of message sent
  * @param {Object}      sender           Origin of the message sent
@@ -385,8 +340,6 @@ function handleMessage(request, sender, sendResponse) {
   }
 
 }
-
-
 
 // Need to recall function on second page reload and compare count of site.
 // If new cookeis are created display a warning message to the user saying as much

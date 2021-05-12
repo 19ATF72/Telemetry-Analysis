@@ -1,7 +1,7 @@
 /**
- * Site - Micah Hobby - 17027531
+ * List - Micah Hobby - 17027531
  *
- * Handles recording of cookies / sites for the database.
+ * Operations relating to filter lists and category mapping for lists
  **/
 class List {
   static listsDownloaded = false;
@@ -63,7 +63,11 @@ class List {
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
-   * @return {ArrayList}     cookies      List of all cookies for site
+   * @param {Integer}         listRowid         id of list to download
+   * @param {String}          sourceURL         location of list to fetch
+   * @param {Boolean}         containsDNS       indicates the structure of list
+   *
+   * @return {Boolean}     outcome      Returns outcome of adding list to DB
    */
   static async retrieveList(listRowid, sourceURL, containsDNS) {
     //Use papaparse instead
@@ -108,6 +112,8 @@ class List {
    *
    * retrieves and inserts data from Open Database Project CSV file
    *
+   * @param {String}         sourceURL       location of openCookieDatabase
+   *
    * @return {boolean}     success      outcome of operation
    */
   static async retrieveOpenCookieDatabase(sourceURL) {
@@ -137,6 +143,9 @@ class List {
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
+   * @param {String}          sourceURL       location of openCookieDatabase
+   * @param {Boolean}         header          does the file have a header?
+   *
    * @return {ArrayList}     cookies      List of all cookies for site
    */
   static async parseDataFromRemoteCSV(sourceURL, header) {
@@ -157,11 +166,11 @@ class List {
   }
 
   /*
-   * removeLists()
+   * removeAllListsValues()
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
-   * @return {ArrayList}     rowid      ids of cookies inserted
+   * @return {Boolean}     removalSuccess      outcome of operation
    */
   static async removeAllListsValues() {
     let removalSuccess = false;
@@ -171,11 +180,6 @@ class List {
         'query': "FROM list_value",
       };
       await DynamicDao.agnosticQuery(removeRows);
-      // let resetRowid = {
-      //   'operation': "DELETE",
-      //   'query': "FROM SQLITE_SEQUENCE WHERE name='list_value'",
-      // };
-      // await DynamicDao.agnosticQuery(resetRowid);
       removalSuccess = true;
     } catch (e) {
       console.error(e);
@@ -186,11 +190,13 @@ class List {
   }
 
   /*
-   * removeLists()
+   * updateExpiredLists()
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
-   * @return {ArrayList}     rowid      ids of cookies inserted
+   * @param {Integer}          now              Current system time
+   *
+   * @return {Boolean}        updateSuccess     outcome of operation
    */
   static async updateExpiredLists(now) {
     let expires = DynamicDao.createExpires(now);
@@ -238,7 +244,7 @@ class List {
    *
    * performs query to add lsit to details and retrieve record database to avoid re-caching
    *
-   * @return {ArrayList}     cookies      List of all cookies for site
+   * @return {Boolean}     retrievalSuccess      outcome of operation
    */
   async addList() {
     let retrievalSuccess = false;
@@ -263,7 +269,7 @@ class List {
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
-   * @return {ArrayList}     rowid      ids of cookies inserted
+   * @return {Boolean}     removalSuccess      outcome of operation
    */
   async removeList() {
     let removalSuccess = false;
@@ -290,11 +296,11 @@ class List {
   }
 
   /*
-   * getHostRowidByName()
+   * getListCategoriesMap()
    *
    * Query retrieves rowid of host that matches the name
    *
-   * @return {ArrayList}     expiredSites      List of sites needing recache
+   * @return {ArrayMap}     listCategoriesMap      Map of categories & ids
    */
   static async getListCategoriesMap() {
     let listCategories;

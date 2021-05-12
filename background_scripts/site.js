@@ -10,6 +10,8 @@ class Site {
    *
    * performs query to retrieve active sites from database to avoid re-caching
    *
+   * @param {String}         siteUrl     URL of user tab to retrieve cookies for
+   *
    * @return {ArrayList}     cookies      List of all cookies for site
    */
   static async getCookies(siteUrl) {
@@ -32,6 +34,9 @@ class Site {
    * insertCookie()
    *
    * performs query to retrieve active sites from database to avoid re-caching
+   *
+   * @param {ArrayList}         cookies    All cookies to be inserted
+   * @param {Integer}           hostId     ID of host cookies belong to
    *
    * @return {ArrayList}     all_rowid      ids of cookies inserted
    */
@@ -80,6 +85,8 @@ class Site {
    *
    * Updates cookie table with new cookie values for site by hostname
    *
+   * @param {Integer}        hostId     ID of host cookies belong to
+   *
    * @return {ArrayList}     rowid      ids of cookies removed
    */
   static async removeCookies(hostId) {
@@ -104,7 +111,9 @@ class Site {
    *
    * Selects all matching records in list_value
    *
-   * @return {ArrayList}     matchedValue      values from list_value
+   * @param {Object}        cookie     Details of cookie to classify
+   *
+   * @return {ArrayList}     list_detail_rowid      ID of list matched for cookie
    */
   static async classifyCookieByDomain(cookie) {
     let strippedDomain;
@@ -153,7 +162,9 @@ class Site {
    *
    * Retrieves rowid of matching name in categorization table
    *
-   * @return {Integer}     cookie_name_classification_rowid      values from list_value
+   * @param {Object}       cookie     Details of cookie to classify
+   *
+   * @return {Integer}     cookie_name_classification_rowid      ID of openCookieDatabase record matched
    */
   static async classifyCookieByName(cookie) {
     let cookie_name_classification_rowid;
@@ -184,7 +195,9 @@ class Site {
    *
    * Selects all matching records in list_value
    *
-   * @return {ArrayList}     matchedValue      values from list_value
+   * @param {ArrayList}         cookies    All cookies to be classified
+   *
+   * @return {ArrayList}     matchedValue      All classification details for cookies
    */
   static async getCookieClassification(cookies) {
     let strippedDomain;
@@ -292,11 +305,13 @@ class Site {
   }
 
   /*
-   * increaseVisitCount() //TODO: Might be better to put in Session, as operates on session table
+   * increaseVisitCount()
    *
    * performs update query that retrieves the site record and increases count +1
    *
-   * @return {Integer}     newCount      new amount of times visited
+   * @param {String}         hostname    ID for host to increase
+   *
+   * @return {Integer}       newCount      new amount of times visited
    */
   static async increaseVisitCount(hostname) {
     let newCount;
@@ -316,11 +331,13 @@ class Site {
   }
 
   /*
-   * increaseVisitCount() //TODO: Might be better to put in Session, as operates on session table
+   * getVisitCountById()
    *
-   * performs update query that retrieves the site record and increases count +1
+   * Retrueves number of visits to a site by ID
    *
-   * @return {Integer}     newCount      new amount of times visited
+   * @param {Integer}     hostId      ID of host to retrieve count
+   *
+   * @return {Integer}     count      number of visits to site
    */
   static async getVisitCountById(hostId) {
     let getCount;

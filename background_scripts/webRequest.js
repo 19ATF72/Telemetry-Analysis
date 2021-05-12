@@ -1,8 +1,7 @@
 /**
- * Session - Micah Hobby - 17027531
+ * WebRequest - Micah Hobby - 17027531
  *
- * Handles recording of cookies / sites for the database.
- * TODO: Needs more fleshed out description
+ * Handles recording and classification of all webRequest made on the system
  **/
 class WebRequest {
   static webRequestCategoriesMap = [];
@@ -12,7 +11,12 @@ class WebRequest {
    *
    * Insert request received broken up into relevant tables
    *
-   * @return {ArrayList}     all_rowid      ids of cookies inserted
+   * @param {Object}      requestDetails        Contains webRequest info given by system
+   * @param {String}      requestUrl            resource request tried to access
+   * @param {Integer}     hostRowid             host webRequest was made for
+   * @param {ArrayMap}    webRequestCategories  Map of categories and IDs
+   *
+   * @return {ArrayList}     web_request_detail_rowid      ids of webRequests inserted
    */
   static async insertRequest(requestDetails, requestUrl, hostRowid, webRequestCategories) {
     let insertRequestDetail;
@@ -79,6 +83,18 @@ class WebRequest {
     }
   }
 
+  /*
+   * classifyRequestByHostname()
+   *
+   * Insert request received broken up into relevant tables
+   *
+   * @param {Object}      web_request_detail_rowid    ID of request being classified
+   * @param {String}      requestUrl                  Resource request tried to access
+   * @param {Integer}     strippedUrl                 Modified version of URL
+   * @param {ArrayMap}    webRequestCategories        Map of categories and IDs
+   *
+   * @return {ArrayList}     list_detail_rowids      ids of lists matched by request
+   */
   static async classifyRequestByHostname(web_request_detail_rowid, requestUrl, strippedUrl, webRequestCategories) {
     let classifyRequest;
     let list_detail_rowids;
@@ -125,7 +141,7 @@ class WebRequest {
    *
    * Query retrieves rowid of host that matches the name
    *
-   * @return {ArrayList}     expiredSites      List of sites needing recache
+   * @return {ArrayList}     webRequestCategoriesMap     Map of categories and Ids
    */
   static async getWebRequestCategoriesMap() {
     let webRequestCategories;
@@ -145,7 +161,15 @@ class WebRequest {
     }
   }
 
-
+  /*
+   * getWebRequestClassification()
+   *
+   * Query retrieves rowid of host that matches the name
+   *
+   * @param {Integer}        hostRowid        ID of host to get all webRequests for
+   *
+   * @return {ArrayList}     matchedValues    Classification details found
+   */
   static async getWebRequestClassification(hostRowid) {
     let classifyWebRequest;
     let matchedValues = [];

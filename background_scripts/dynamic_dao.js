@@ -216,7 +216,7 @@ class DynamicDao {
           CONSTRAINT composite_key
           UNIQUE (web_request_detail_rowid, web_request_category_rowid)
           ON CONFLICT IGNORE)`);
-          
+
 
         //Insert list types
         db.run("INSERT INTO web_request_category (name) VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?), (?)",
@@ -418,8 +418,6 @@ class DynamicDao {
    * persistDatabase()
    *
    * Updates IndexedDB storage with in memory Database
-   *
-   * @param {string}      name         Name for the new database
    *
    * @return {boolean}    success         Returns outcome of the operation
    */

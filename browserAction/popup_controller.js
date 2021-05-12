@@ -51,7 +51,7 @@ async function getActiveTab() {
  *
  * Convert epoch time for DB to human readable string
  *
- * @return {Object}     retrievalSuccess      outcome of attempting retrieval
+ * @return {String}     nd      Epoch time user readable
  */
 function convertEpochToSpecificTimezone(timeEpoch, offset) {
   var d = new Date(timeEpoch);
