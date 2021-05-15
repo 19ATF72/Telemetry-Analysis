@@ -40,6 +40,11 @@
     "default_popup": "browserAction/popup_view.html"
   },
 
+  "options_ui": {
+    "page": "optionMenu/option.html",
+    "browser_style": true
+  },
+
   "web_accessible_resources": [
     "resources/frog.jpg",
     "resources/turtle.jpg",

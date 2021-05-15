@@ -1,0 +1,15 @@
+h1 {
+  font-style: italic;
+}
+
+.option-form-container {
+  display: grid;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.option-title {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-weight: bold;
+}

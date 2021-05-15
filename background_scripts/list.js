@@ -59,6 +59,48 @@ class List {
   }
 
   /*
+   * retrieveListsForDisplay()
+   *
+   * performs query to retrieve all list details for display
+   *
+   * @return {boolean}     retrievalSuccess      outcome of attempting retrieval
+   */
+  static async retrieveListsForDisplay() {
+    let lists = [];
+    let listDetails = [];
+    let listDetail;
+    let getLists = {
+      'operation': "SELECT",
+      'query': `ld.rowid, ld.sourceRepo, ld.description, ld.sourceURL, la.name, lc.name
+                FROM list_detail AS ld
+                INNER JOIN list_accuracy AS la ON ld.list_accuracy_rowid = la.rowid
+                INNER JOIN list_category AS lc ON ld.list_category_rowid = lc.rowid`,
+    };
+    lists = await DynamicDao.agnosticQuery(getLists);
+    try {
+      if (lists.length) {
+        for (var list of lists[0].values) {
+          let listCount = {
+            'operation': "SELECT",
+            'query': `COUNT(*)
+                      FROM list_value AS lv
+                      WHERE list_detail_rowid = ?`,
+            'values': [list[0]],
+          };
+          listCount = await DynamicDao.agnosticQuery(listCount);
+          listDetail = {'listRowid': list[0], 'listRepo': list[1], 'listDescription': list[2], 'listSource': list[3], 'listAccuracy': list[4], 'listCategory': list[5], 'listCount': listCount[0].values[0][0]}
+          listDetails.push(listDetail);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      throw (e)
+    } finally {
+      return listDetails;
+    }
+  }
+
+  /*
    * retrieveList()
    *
    * performs query to retrieve active sites from database to avoid re-caching

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="optionStyle.css">
+  </head>
+
+  <body>
+
+    <div id="filterList">
+      <br/>
+      <b class="filterTitle">Filter Lists</b>
+      <div id="filterItems">
+      </div>
+    </div>
+
+    <div class="option-form-container">
+      <form>
+        <div class="option-title">
+          <div>Add list</div>
+        </div>
+
+        <div>
+          <label>Name:</label>
+          <input required type="text" id="name" />
+        </div>
+        <div>
+          <label>Source repo:</label>
+          <input required type="text" id="repo" />
+        </div>
+        <div>
+          <label>Filter location:</label>
+          <input required type="text" id="location" />
+        </div>
+        <div>
+          <label>Accuracy:</label>
+          <select name="accuracy" id="accuracy">
+            <option value="1">Low</option>
+            <option value="2">Medium</option>
+            <option value="3">High</option>
+          </select>
+        </div>
+        <div>
+          <label>Classification:</label>
+          <select name="classification" id="classification">
+            <option value="1">Suspicious</option>
+            <option value="2">Advertising</option>
+            <option value="3">Tracking</option>
+            <option value="4">Malicious</option>
+            <option value="5">Other</option>
+          </select>
+        </div>
+
+        <div class="option-title">
+          <button id="addList" type="submit">Add</button>
+        </div>
+      </form>
+    </div>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="option.js"></script>
+  </body>
+
+</html>

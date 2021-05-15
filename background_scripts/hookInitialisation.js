@@ -333,6 +333,41 @@ function handleMessage(request, sender, sendResponse) {
         });
       });
       break;
+    case 'optionPageAccessed':
+      let listsFufilled;
+      //Refresh cookies in database
+      return List.retrieveListsForDisplay()
+      .then(function(listDetails) {
+        listDetailsFufilled = listDetails;
+        return new Promise(function(resolve, reject) {
+          resolve(listDetails);
+        });
+      });
+      break;
+    case 'addList':
+      let now = Date.now(); // Unix timestamp in milliseconds
+      let listAddedFufilled;
+      let newList = new List(request.newList.classification, request.newList.accuracy, request.newList.sourceRepo, request.newList.name, request.newList.filterLocation, now, now, 0);
+      return newList.addList()
+      .then(function(retrievalSuccess) {
+        listAddedFufilled = retrievalSuccess;
+        return new Promise(function(resolve, reject) {
+          resolve(listAddedFufilled);
+        });
+      });
+      break;
+    case 'deleteList':
+      let listDeletedFufilled;
+      let removeList = new List(null, null, null, null, null, null, null, null);
+      removeList.rowid = request.rowid;
+      return removeList.removeList()
+      .then(function(removalSuccess) {
+        listDeletedFufilled = removalSuccess;
+        return new Promise(function(resolve, reject) {
+          resolve(listDeletedFufilled);
+        });
+      });
+      break;
     default:
       console.log("Message not implemented yet");
       break;
