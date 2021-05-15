@@ -17,7 +17,7 @@ It adds a browser action to analyse scripts &amp; telemetry on the page, and is 
 - Or press Ctrl+Shift+A as a shortcut
 #### 3.2 On the manage extensions page, click the cog
 #### 3.3 Click install 'Add-on from file'
-#### 3.4 Go to the location of the project -> Then go to 'web-ext artifacts' -> Select the latest build (2.0 currently)
+#### 3.4 Go to the location of the project -> Then go to 'web-ext artifacts' -> Select the latest build (2.1 currently)
 #### 3.5 Approve extension permissions
 ### 4. Wait 10 seconds & restart Firefox
 
