@@ -70,13 +70,13 @@ async function handleInstall(details) {
     console.log("OpenCookieDatabase downloaded = ", List.openCookieDatabaseDownloaded);
 
     // Operation for removing expired lists and reloading them
-    // List.expiredListsUpdated = await List.updateExpiredLists(now);
-    // console.log("Lists updated = ", List.expiredListsUpdated);
+    List.expiredListsUpdated = await List.updateExpiredLists(now);
+    console.log("Lists updated = ", List.expiredListsUpdated);
 
     // Operation for removing all lists values and reloading them
-    // List.listsDownloaded = !(await List.removeAllListsValues());
-    // List.listsDownloaded = await List.retrieveLists();
-    // console.log("Lists downloaded = ", List.listsDownloaded);
+    List.listsDownloaded = !(await List.removeAllListsValues());
+    List.listsDownloaded = await List.retrieveLists();
+    console.log("Lists downloaded = ", List.listsDownloaded);
 
     // Operations for adding a new list and removing a new list
     // let testList = new List(3, 3, "https://github.com/easylist/easyTest", "EasyTest", "https://v.firebog.net/hosts/AdguardDNS.txt", now, now, 0);
@@ -121,6 +121,15 @@ async function handleStartup() {
     List.listCategoriesMap = await List.getListCategoriesMap();
     WebRequest.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
     console.log(result);
+
+    // Operation for removing expired lists and reloading them
+    List.expiredListsUpdated = await List.updateExpiredLists(now);
+    console.log("Lists updated = ", List.expiredListsUpdated);
+
+    // Operation for removing all lists values and reloading them
+    List.listsDownloaded = !(await List.removeAllListsValues());
+    List.listsDownloaded = await List.retrieveLists();
+    console.log("Lists downloaded = ", List.listsDownloaded);
   } catch (e) {
     console.error(e);
   } finally {
