@@ -33,6 +33,36 @@ $("#addList").on("click", function() {
 });
 
 /**
+ * On export button being clicked
+ */
+$("#export").on("click", function() {
+    let request = browser.runtime.sendMessage({
+      operation: 'exportDatabase',
+    });
+    request.then(handleExportResponse, handleError);
+});
+
+/**
+ * On copy clipboard being clicked
+ */
+$("#copyClipboard").on("click", function() {
+  /* Get the text field */
+  let copyText = $('#exportDump');
+
+  /* Select the text field */
+  copyText.select();
+  // copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+  /* Copy the text inside the text field */
+  document.execCommand("copy");
+
+  console.log(copyText);
+
+  /* Alert the copied text */
+  // alert("Copied the text: " + copyText.value);
+});
+
+/**
  * On remove list being clicked
  */
 function removeList(rowid) {
@@ -58,6 +88,7 @@ function removeList(rowid) {
  * @return {boolean}     retrievalSuccess      outcome of attempting retrieval
  */
 function handleResponse(message) {
+  console.log(message);
   var filterList = $('#filterItems');
   if (message.length > 0) {
     for (let [index, row] of message.entries()) {
@@ -70,6 +101,21 @@ function handleResponse(message) {
       $('#'+removeId).on("click", removeList.bind(this, removeId));
     }
   }
+}
+
+/*
+ * handleExportResponse()
+ *
+ * Sends messsage to Dynamic_Dao to retrieve information
+ *
+ * @param (object)      message     contains message from the background script
+ *
+ * @return {boolean}     retrievalSuccess      outcome of attempting retrieval
+ */
+function handleExportResponse(message) {
+  console.log(message);
+  exportData = $('#exportDump');
+  exportData.val(message);
 }
 
 /*
