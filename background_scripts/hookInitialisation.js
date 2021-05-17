@@ -379,21 +379,11 @@ function handleMessage(request, sender, sendResponse) {
       break;
     case 'exportDatabase':
       let databaseExportFufilled;
-
       databaseExportFufilled = DynamicDao.toBinString(DynamicDao.DB.export());
-      // return DynamicDao.localforage.getItem(DynamicDao.name)
-      // return DynamicDao.DB.export()
       console.log(databaseExportFufilled);
       return new Promise(function(resolve, reject) {
         resolve(databaseExportFufilled);
       });
-      // .then(function(databaseExport) {
-      //   //databaseExportFufilled = DynamicDao.toBinString(databaseExport);
-      //   console.log(databaseExport);
-      //   return new Promise(function(resolve, reject) {
-      //     resolve(databaseExportFufilled);
-      //   });
-      // });
       break;
     default:
       console.log("Message not implemented yet");
