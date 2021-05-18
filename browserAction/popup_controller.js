@@ -203,7 +203,7 @@ function handleResponse(message) {
           "<div class='card m-1'>",
           "<a tabindex='" + index + "' id='card" + index + "' class='card-header'>" + row.cookieName + "</a>",
           "<div class='card-body'>",
-          "<p class='card-subtitle cookies-with-similar'>" + hostList + "</p>",
+          "<p class='card-subtitle cookies-with-similar'>" + hostList.join(' ') + "</p>",
           "</div>",
           "</div>",
           "</div>"

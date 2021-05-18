@@ -106,7 +106,7 @@ async function handleStartup() {
 
     //Must be called before running any db methods
     DynamicDao.SQL = await DynamicDao.initSqlJs(DynamicDao.config);
-    DynamicDao.DB = await DynamicDao.retrieveDatabase();
+    DynamicDao.DB = await DynamicDao.retrieveDatabase(DynamicDao.name);
     DynamicDao.TRACKER_DB = await DynamicDao.retrieveDatabase(DynamicDao.externalDB);
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT
@@ -120,7 +120,6 @@ async function handleStartup() {
     //LOAD CLASSIFICATIONS
     List.listCategoriesMap = await List.getListCategoriesMap();
     WebRequest.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
-    console.log(result);
 
     // Operation for removing expired lists and reloading them
     List.expiredListsUpdated = await List.updateExpiredLists(now);
@@ -362,6 +361,19 @@ function handleMessage(request, sender, sendResponse) {
         listAddedFufilled = retrievalSuccess;
         return new Promise(function(resolve, reject) {
           resolve(listAddedFufilled);
+        });
+      })
+      .then(function(listAddedFufilled) {
+        console.log(listAddedFufilled);
+        persistDatabaseStatus = DynamicDao.persistDatabase();
+        return new Promise(function(resolve, reject) {
+          resolve(persistDatabaseStatus);
+        });
+      })
+      .then(function(persistDatabaseStatus) {
+        console.log(persistDatabaseStatus);
+        return new Promise(function(resolve, reject) {
+          resolve(persistDatabaseStatus);
         });
       });
       break;
