@@ -9,6 +9,7 @@ mapping & cookie classification utilizing existing resources such as OpenCookieD
 It adds a browser action to analyse scripts &amp; telemetry on the page, and is tested with the latest version of firefox.
 
 ## Installation guide
+Installation should be done on Firefox Extended Support Release (ESR), Firefox Developer Edition or Nightly version.
 ### 1. Download the project, either via git clone or directly as a Zip.
 ### 2. Unzip / locate the project once downloaded.
 ### 3. Open Firefox
