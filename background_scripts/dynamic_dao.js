@@ -242,7 +242,7 @@ class DynamicDao {
           [3, 3, "https://github.com/easylist/easylist", "Easyprivacy", "https://v.firebog.net/hosts/Easyprivacy.txt", now, expires, 0]);
 
         db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate, containsDNS) VALUES (?,?,?,?,?,?,?,?)",
-          [3, 3, "https://github.com/Kees1958/W3C_annual_most_used_survey_blocklist", "W3C_annual_most_used_survey_blocklist", "https://raw.githubusercontent.com/Kees1958/W3C_annual_most_used_survey_blocklist/master/TOP_EU_US_Ads_Trackers_HOST", now, expires, 1]);
+          [3, 3, "https://github.com/Kees1958/W3C_annual_most_used_survey_blocklist", "W3C_annual_most_used_survey_blocklist", "https://raw.githubusercontent.com/Kees1958/W3C_annual_most_used_survey_blocklist/b3a54bf1ce5a48d62afada529bd900c2f2e587ba/TOP_EU_US_Ads_Trackers_HOST", now, expires, 1]);
 
         db.run("INSERT INTO list_detail (list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate, containsDNS) VALUES (?,?,?,?,?,?,?,?)",
           [1, 3, "https://github.com/PolishFiltersTeam/KADhosts/blob/master", "PolishFiltersTeam KADhosts", "https://raw.githubusercontent.com/PolishFiltersTeam/KADhosts/master/KADhosts.txt", now, expires, 1]);

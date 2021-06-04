@@ -21,7 +21,7 @@ Installation has been tested on Firefox 85.0 and above, or alternatively use the
 - Or press Ctrl+Shift+A as a shortcut
 #### 3.3 On the manage extensions page, click the cog
 #### 3.4 Click install 'Add-on from file'
-#### 3.5 Go to the location of the project -> Then go to 'web-ext artifacts' -> Select the latest build (2.3 currently)
+#### 3.5 Go to the location of the project -> Then go to 'web-ext artifacts' -> Select the latest build (2.4 currently)
 #### 3.6 Approve extension permissions
 ### 4. Wait 10 seconds & restart Firefox
 
