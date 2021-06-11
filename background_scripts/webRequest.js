@@ -3,8 +3,10 @@
  *
  * Handles recording and classification of all webRequest made on the system
  **/
+
+window.webRequestCategoriesMap = [];
+
 class WebRequest {
-  static webRequestCategoriesMap = [];
 
   /*
    * insertRequest()

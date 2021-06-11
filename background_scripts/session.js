@@ -3,9 +3,11 @@
  *
  * Handles actions related to sites visited, inserting & updating hosts in a session
  **/
+
+ window.activeSites = [];
+ window.expiredSites = [];
+
 class Session {
-  static activeSites = [];
-  static expiredSites = [];
 
   /*
    * getActiveSites()

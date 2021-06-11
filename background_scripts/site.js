@@ -3,6 +3,7 @@
  *
  * Handles recording of cookies / sites for the database.
  **/
+ 
 class Site {
 
   /*

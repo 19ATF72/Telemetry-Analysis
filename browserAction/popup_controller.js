@@ -223,6 +223,7 @@ function handleResponse(message) {
 
   if (message.webRequestClassification) {
     let nameClass = '';
+    let webRequestCard = '';
     for (let [index, row] of message.webRequestClassification.entries()) {
       if (row.listsMatched && row.dommainMapping) {
         nameClass = 'alert-warning';

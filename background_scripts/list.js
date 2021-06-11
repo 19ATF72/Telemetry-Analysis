@@ -3,15 +3,17 @@
  *
  * Operations relating to filter lists and category mapping for lists
  **/
+
+ window.listsDownloaded = false;
+ window.expiredListsUpdated = false;
+ window.openCookieDatabase = 'https://raw.githubusercontent.com/jkwakman/Open-Cookie-Database/master/open-cookie-database.csv';
+ //static whoTracksMe = 'https://raw.githubusercontent.com/ghostery/whotracks.me/master/whotracksme/data/assets/trackerdb.sql';
+ window.whoTracksMe = 'https://github.com/19ATF72/trackersListSQLite/blob/master/data.sqlite?raw=true';
+ window.openCookieDatabaseDownloaded = false;
+ window.whoTracksMeDownloaded = false;
+ window.listCategoriesMap = [];
+
 class List {
-  static listsDownloaded = false;
-  static expiredListsUpdated = false;
-  static openCookieDatabase = 'https://raw.githubusercontent.com/jkwakman/Open-Cookie-Database/master/open-cookie-database.csv';
-  //static whoTracksMe = 'https://raw.githubusercontent.com/ghostery/whotracks.me/master/whotracksme/data/assets/trackerdb.sql';
-  static whoTracksMe = 'https://github.com/19ATF72/trackersListSQLite/blob/master/data.sqlite?raw=true'
-  static openCookieDatabaseDownloaded = false;
-  static whoTracksMeDownloaded = false;
-  static listCategoriesMap = [];
 
   constructor(list_category_rowid, list_accuracy_rowid, sourceRepo, description, sourceURL, lastUpdated, expirationDate, containsDNS) {
     this.list_category_rowid = list_category_rowid;

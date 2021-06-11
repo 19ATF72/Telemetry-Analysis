@@ -42,41 +42,41 @@ async function handleInstall(details) {
     let now = Date.now(); // Unix timestamp in milliseconds
 
     //Must be called before running any db methods
-    DynamicDao.SQL = await DynamicDao.initSqlJs(DynamicDao.config);
+    window.SQL = await window.initSqlJs(window.config);
 
-    DynamicDao.dbCreated = await DynamicDao.createDatabase(now);
-    DynamicDao.DB = await DynamicDao.retrieveDatabase(DynamicDao.name);
+    window.dbCreated = await DynamicDao.createDatabase(now);
+    window.DB = await DynamicDao.retrieveDatabase(window.name);
 
-    DynamicDao.dbCreated = await DynamicDao.createExternalDatabase(List.whoTracksMe);
-    DynamicDao.TRACKER_DB = await DynamicDao.retrieveDatabase(DynamicDao.externalDB);
+    window.dbCreated = await DynamicDao.createExternalDatabase(window.whoTracksMe);
+    window.TRACKER_DB = await DynamicDao.retrieveDatabase(window.externalDB);
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT
-    Session.activeSites = await Session.getActiveSites(now);
-    Session.expiredSites = await Session.getExpiredSites(now);
+    window.activeSites = await Session.getActiveSites(now);
+    window.expiredSites = await Session.getExpiredSites(now);
 
-    console.log(Session.activeSites);
-    console.log(Session.expiredSites);
+    console.log(window.activeSites);
+    console.log(window.expiredSites);
 
     //LOAD CLASSIFICATIONS
-    List.listCategoriesMap = await List.getListCategoriesMap();
-    WebRequest.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
+    window.listCategoriesMap = await List.getListCategoriesMap();
+    window.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
 
     //LOAD LISTS FOR CLASIFICATION
-    List.listsDownloaded = await List.retrieveLists();
-    console.log("Lists downloaded = ", List.listsDownloaded);
+    window.listsDownloaded = await List.retrieveLists();
+    console.log("Lists downloaded = ", window.listsDownloaded);
 
     //LOAD OPEN COOKIE DATABASE
-    List.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(List.openCookieDatabase);
-    console.log("OpenCookieDatabase downloaded = ", List.openCookieDatabaseDownloaded);
+    window.openCookieDatabaseDownloaded = await List.retrieveOpenCookieDatabase(window.openCookieDatabase);
+    console.log("OpenCookieDatabase downloaded = ", window.openCookieDatabaseDownloaded);
 
     // Operation for removing expired lists and reloading them
-    List.expiredListsUpdated = await List.updateExpiredLists(now);
-    console.log("Lists updated = ", List.expiredListsUpdated);
+    //window.expiredListsUpdated = await List.updateExpiredLists(now);
+    //console.log("Lists updated = ", window.expiredListsUpdated);
 
     // Operation for removing all lists values and reloading them
-    List.listsDownloaded = !(await List.removeAllListsValues());
-    List.listsDownloaded = await List.retrieveLists();
-    console.log("Lists downloaded = ", List.listsDownloaded);
+    //window.listsDownloaded = !(await List.removeAllListsValues());
+    //window.listsDownloaded = await List.retrieveLists();
+    //console.log("Lists downloaded = ", window.listsDownloaded);
 
     // Operations for adding a new list and removing a new list
     // let testList = new List(3, 3, "https://github.com/easylist/easyTest", "EasyTest", "https://v.firebog.net/hosts/AdguardDNS.txt", now, now, 0);
@@ -105,30 +105,30 @@ async function handleStartup() {
     });
 
     //Must be called before running any db methods
-    DynamicDao.SQL = await DynamicDao.initSqlJs(DynamicDao.config);
-    DynamicDao.DB = await DynamicDao.retrieveDatabase(DynamicDao.name);
-    DynamicDao.TRACKER_DB = await DynamicDao.retrieveDatabase(DynamicDao.externalDB);
+    window.SQL = await window.initSqlJs(window.config);
+    window.DB = await window.retrieveDatabase(window.name);
+    window.TRACKER_DB = await DynamicDao.retrieveDatabase(window.externalDB);
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT
     let now = Date.now(); // Unix timestamp in milliseconds
-    Session.activeSites = await Session.getActiveSites(now);
-    Session.expiredSites = await Session.getExpiredSites(now);
+    window.activeSites = await Session.getActiveSites(now);
+    window.expiredSites = await Session.getExpiredSites(now);
 
-    console.log(Session.activeSites);
-    console.log(Session.expiredSites);
+    console.log(window.activeSites);
+    console.log(window.expiredSites);
 
     //LOAD CLASSIFICATIONS
-    List.listCategoriesMap = await List.getListCategoriesMap();
-    WebRequest.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
+    window.listCategoriesMap = await List.getListCategoriesMap();
+    window.webRequestCategoriesMap = await WebRequest.getWebRequestCategoriesMap();
 
     // Operation for removing expired lists and reloading them
-    List.expiredListsUpdated = await List.updateExpiredLists(now);
-    console.log("Lists updated = ", List.expiredListsUpdated);
+    window.expiredListsUpdated = await List.updateExpiredLists(now);
+    console.log("Lists updated = ", window.expiredListsUpdated);
 
     // Operation for removing all lists values and reloading them
-    List.listsDownloaded = !(await List.removeAllListsValues());
-    List.listsDownloaded = await List.retrieveLists();
-    console.log("Lists downloaded = ", List.listsDownloaded);
+    window.listsDownloaded = !(await List.removeAllListsValues());
+    window.listsDownloaded = await List.retrieveLists();
+    console.log("Lists downloaded = ", window.listsDownloaded);
   } catch (e) {
     console.error(e);
   } finally {
@@ -160,7 +160,7 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
 
         let now = Date.now(); // Unix timestamp in milliseconds
 
-        if (Session.expiredSites.includes(url.hostname)) {
+        if (window.expiredSites.includes(url.hostname)) {
           console.log("Site is in expired list, needs caching and updating entry");
           //Find host and removed old cookies
           let hostId = await Session.getHostRowidByName(url.hostname);
@@ -175,15 +175,15 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
           //Using indexOf instead of for loop to remove item from Array
           //Offers better performance on larger arrays according
           //https://javascript.plainenglish.io/how-to-remove-a-specific-item-from-an-array-in-javascript-a49b108404c
-          let hostIndex = Session.expiredSites.indexOf(url.hostname)
-          hostIndex > -1 ? Session.expiredSites.splice(hostIndex, 1) : false
+          let hostIndex = window.expiredSites.indexOf(url.hostname)
+          hostIndex > -1 ? window.expiredSites.splice(hostIndex, 1) : false
 
           let visitCount = await Site.increaseVisitCount(url.hostname);
 
           //Set site in local memory
-          Session.activeSites.push(url.hostname);
+          window.activeSites.push(url.hostname);
 
-        } else if (!(Session.activeSites.includes(url.hostname))) {
+        } else if (!(window.activeSites.includes(url.hostname))) {
           // console.log("Add to local memory, add to list for next startup");
           // Delay implemented to attempt capture of late js script set cookies.
           // Was impractical due to async nature of the setting and differences in timing
@@ -197,7 +197,7 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
           if (cookies.length) {
             let rowid = await Site.insertCookies(cookies, hostId);
           }
-          Session.activeSites.push(url.hostname);
+          window.activeSites.push(url.hostname);
 
           //THIS IS THE CODE FOR RETRIEVING SITES FOR IDENTIFIERS
           // console.log("Retrieving sites with same cookie name identifier");
@@ -231,7 +231,7 @@ async function handleUpdated(tabId, changeInfo, tabInfo) {
  */
 async function handleWebRequestOnComplete(requestDetails) {
   try {
-    if (!(requestDetails.fromCache) && DynamicDao.DB) {
+    if (!(requestDetails.fromCache) && window.DB) {
       let now = Date.now(); // Unix timestamp in milliseconds
       let requestUrl = new URL(requestDetails.url);
       let strippedUrl = psl.parse(requestUrl.hostname);
@@ -252,8 +252,8 @@ async function handleWebRequestOnComplete(requestDetails) {
       }
 
       let hostRowid = await Session.getHostRowid(siteHostname.hostname, now);
-      let web_request_detail_rowid = await WebRequest.insertRequest(requestDetails, requestUrl, hostRowid, WebRequest.webRequestCategoriesMap);
-      let list_detail_rowids = await WebRequest.classifyRequestByHostname(web_request_detail_rowid, requestUrl, strippedUrl, List.listCategoriesMap);
+      let web_request_detail_rowid = await WebRequest.insertRequest(requestDetails, requestUrl, hostRowid, window.webRequestCategoriesMap);
+      let list_detail_rowids = await WebRequest.classifyRequestByHostname(web_request_detail_rowid, requestUrl, strippedUrl, window.listCategoriesMap);
     }
   } catch (e) {
     console.error(e);
@@ -391,7 +391,7 @@ function handleMessage(request, sender, sendResponse) {
       break;
     case 'exportDatabase':
       let databaseExportFufilled;
-      databaseExportFufilled = DynamicDao.toBinString(DynamicDao.DB.export());
+      databaseExportFufilled = DynamicDao.toBinString(window.DB.export());
       console.log(databaseExportFufilled);
       return new Promise(function(resolve, reject) {
         resolve(databaseExportFufilled);
