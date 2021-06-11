@@ -27,6 +27,13 @@ window.onload = async function() {
   }
 }
 
+/**
+ * On dashboard button being clicked
+ */
+$("#dashboard-button").on("click", function() {
+    browser.runtime.openOptionsPage();
+    window.close();
+});
 
 /**
  * Helper functions

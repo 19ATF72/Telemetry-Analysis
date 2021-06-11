@@ -82,7 +82,6 @@ function removeList(rowid) {
  * @return {boolean}     retrievalSuccess      outcome of attempting retrieval
  */
 function handleResponse(message) {
-  console.log(message);
   var filterList = $('#filterItems');
   if (message.length > 0) {
     for (let [index, row] of message.entries()) {
