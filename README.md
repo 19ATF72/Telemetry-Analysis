@@ -13,7 +13,8 @@ Coming soon!
 
 ## Manual installation guide
 Installation has been tested on Firefox 85.0 and above, or alternatively use the Firefox Developer or Nightly edition.
-### 1. Download the latest signed extension file, currently 'telemetry_analysis-2.7-an+fx.xpi' in 'web-ext artifacts'.
+### 1. Download the latest signed extension file
+- Currently 'telemetry_analysis-2.7-an+fx.xpi' in 'web-ext artifacts'.
 ### 2. Open Firefox
 #### 2.1 Navigate to the Add-ons / extensions page
 - Either go to options menu (Tab with 3 vertical lines) -> Add-ons & Themes
