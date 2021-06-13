@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "Telemetry Analysis",
-  "version": "2.6",
+  "version": "2.7",
   "description": "Adds a browser action to analyse scripts & telemetry on the page.",
   "homepage_url": "https://github.com/19ATF72/Telemetry-Analysis",
 
@@ -20,13 +20,6 @@
     "storage",
     "webRequest",
     "<all_urls>"
-  ],
-
-  "content_scripts": [
-    {
-      "matches": [ "*://*/*" ],
-      "js": ["content_scripts/tracker_analysis_model.js"]
-    }
   ],
 
   "background": {

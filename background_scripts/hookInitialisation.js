@@ -100,9 +100,9 @@ async function handleInstall(details) {
 async function handleStartup() {
   try {
     //Load the survey tab
-    browser.tabs.create({
-      url: "https://uwe.eu.qualtrics.com/jfe/form/SV_bxEcfIzIjDUQNHo"
-    });
+    // browser.tabs.create({
+    //   url: "https://uwe.eu.qualtrics.com/jfe/form/SV_bxEcfIzIjDUQNHo"
+    // });
 
     //Must be called before running any db methods
     window.SQL = await window.initSqlJs(window.config);
