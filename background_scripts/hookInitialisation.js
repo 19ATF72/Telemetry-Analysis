@@ -106,7 +106,7 @@ async function handleStartup() {
 
     //Must be called before running any db methods
     window.SQL = await window.initSqlJs(window.config);
-    window.DB = await window.retrieveDatabase(window.name);
+    window.DB = await DynamicDao.retrieveDatabase(window.name);
     window.TRACKER_DB = await DynamicDao.retrieveDatabase(window.externalDB);
 
     // ANY CODE YOU PUT HERE MUST GO IN STARTUP HOOK AFTER DEPLOYMENT

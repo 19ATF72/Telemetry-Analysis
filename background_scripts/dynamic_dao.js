@@ -12,7 +12,7 @@
  window.name = "sqlite";
  window.externalDB = "trackerDb";
  window.config = {
-   locateFile: filename => `../node_modules/sql.js/dist/${filename}`
+   locateFile: filename => `../background_scripts/libraries/${filename}`
  };
  // initSqlJs = window.initSqlJs;
  // localforage = window.localforage;
@@ -429,7 +429,7 @@ class DynamicDao {
     try {
       //console.group("DynamicDao - persistDatabase");
       await window.localforage.setItem(window.name, DynamicDao.toBinString(window.DB.export()));
-      await window.localforage.setItem(window.externalDB, DynamicDao.toBinString(window.externalDB.export()));
+      await window.localforage.setItem(window.externalDB, DynamicDao.toBinString(window.TRACKER_DB.export()));
     } catch (e) {
       throw (e);
       throw new Error("DynamicDao - retrieveDatabase - Could not persist DB")
@@ -448,7 +448,7 @@ class DynamicDao {
   static async closeDatabase() {
     try {
       window.DB.close();
-      window.externalDB.close();
+      window.TRACKER_DB.close();
     } catch (e) {
       throw (e);
       throw new Error("DynamicDao - closeDatabase - Closing database failed")
