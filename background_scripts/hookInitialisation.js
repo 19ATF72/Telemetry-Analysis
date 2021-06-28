@@ -277,12 +277,14 @@ function handleMessage(request, sender, sendResponse) {
   switch (request.operation) {
     case 'popupControllerPageOpnened':
       let url = new URL(request.activeTab);
+      let title = request.tabTitle;
       let hostIdFufilled;
       let cookiesFufilled;
       let visitCountFufilled;
       let cookieClassificationFufilled;
       let webRequestClassificationFufilled;
       let hostsWithSameCookieNameFufilled;
+      let siteMapFufilled;
 
       //Refresh cookies in database
       return Session.getHostRowidByName(url.hostname)
@@ -336,10 +338,24 @@ function handleMessage(request, sender, sendResponse) {
       .then(function(hostsWithSameCookieName) {
         return new Promise(function(resolve, reject) {
           hostsWithSameCookieNameFufilled = hostsWithSameCookieName;
-          response = {cookieClassification: cookieClassificationFufilled, hostsWithSameCookieName: hostsWithSameCookieNameFufilled, webRequestClassification: webRequestClassificationFufilled, visitCount: visitCountFufilled};
+          let siteMap = Site.createSiteMap(url, title, cookieClassificationFufilled, hostsWithSameCookieNameFufilled, webRequestClassificationFufilled);
+          siteMapFufilled = siteMap;
+          resolve(siteMapFufilled);
+        });
+      })
+      .then(function(siteMapFufilled) {
+        return new Promise(function(resolve, reject) {
+          response = {
+                      cookieClassification: cookieClassificationFufilled,
+                      hostsWithSameCookieName: hostsWithSameCookieNameFufilled,
+                      webRequestClassification: webRequestClassificationFufilled,
+                      visitCount: visitCountFufilled,
+                      siteMap: siteMapFufilled,
+                    };
           resolve(response);
         });
       });
+
       break;
     case 'optionPageAccessed':
       let listsFufilled;

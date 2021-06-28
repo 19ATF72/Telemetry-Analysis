@@ -15,7 +15,8 @@ window.onload = async function() {
     if (url.hostname) {
       let request = browser.runtime.sendMessage({
         operation: 'popupControllerPageOpnened',
-        activeTab: activeTab[0].url
+        activeTab: activeTab[0].url,
+        tabTitle: activeTab[0].title
       });
       request.then(handleResponse, handleError);
     } else {
@@ -31,8 +32,8 @@ window.onload = async function() {
  * On dashboard button being clicked
  */
 $("#dashboard-button").on("click", function() {
-    browser.runtime.openOptionsPage();
-    window.close();
+  browser.runtime.openOptionsPage();
+  window.close();
 });
 
 /**
@@ -199,6 +200,7 @@ function handleResponse(message) {
     p.appendChild(content);
   }
 
+  //Similar cookies
   if (message.hostsWithSameCookieName.length > 0) {
     for (let [index, row] of message.hostsWithSameCookieName.entries()) {
       if (row.sitesMatched.length > 0) {
@@ -227,18 +229,18 @@ function handleResponse(message) {
     p.appendChild(content);
   }
 
-
+  //WebRequest classification
   if (message.webRequestClassification) {
     let nameClass = '';
     let webRequestCard = '';
     for (let [index, row] of message.webRequestClassification.entries()) {
-      if (row.listsMatched && row.dommainMapping) {
+      if (row.listsMatched && row.domainMapping) {
         nameClass = 'alert-warning';
         webRequestCard = $([
           "<div class='col-sm-12'>",
-          "<div class='webRequestCard card m-1 "+nameClass+"'>",
-          "<a tabindex='" + index + "' id='webRequest"+index+"' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.dommainMapping[0][1]) + ' : ' + sanitize(row.dommainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.dommainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.dommainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.dommainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
-          "<div class='card-body' id='webRequestBody"+index+"'>",
+          "<div class='webRequestCard card m-1 " + nameClass + "'>",
+          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.domainMapping[0][1]) + ' : ' + sanitize(row.domainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.domainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.domainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.domainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
+          "<div class='card-body' id='webRequestBody" + index + "'>",
           "</div>",
           "</div>",
           "</div>"
@@ -250,15 +252,15 @@ function handleResponse(message) {
         for (let [lindex, list] of row.listsMatched.entries()) {
           let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
           // webRequestList.append(webRequestSubtitle);
-          webRequestBelongsTo = $("#webRequestBody"+index+"");
+          webRequestBelongsTo = $("#webRequestBody" + index + "");
           webRequestBelongsTo.append(webRequestSubtitle);
         }
 
-      } else if (row.dommainMapping) {
+      } else if (row.domainMapping) {
         webRequestCard = $([
           "<div class='col-sm-12'>",
           "<div class='card m-1'>",
-                    "<a tabindex='" + index + "' id='webRequest"+index+"' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.dommainMapping[0][1]) + ' : ' + sanitize(row.dommainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.dommainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.dommainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.dommainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
+          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.domainMapping[0][1]) + ' : ' + sanitize(row.domainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.domainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.domainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.domainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
           "</div>",
           "</div>"
         ].join("\n"));
@@ -269,9 +271,9 @@ function handleResponse(message) {
         nameClass = 'alert-warning';
         webRequestCard = $([
           "<div class='col-sm-12'>",
-          "<div class='webRequestCard card m-1 "+nameClass+"'>",
+          "<div class='webRequestCard card m-1 " + nameClass + "'>",
           "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' >" + sanitize(row.webRequestResourceUrl) + "</a>",
-          "<div class='card-body' id='webRequestBody"+index+"'>",
+          "<div class='card-body' id='webRequestBody" + index + "'>",
           "</div>",
           "</div>",
           "</div>"
@@ -281,7 +283,7 @@ function handleResponse(message) {
 
         for (let [lindex, list] of row.listsMatched.entries()) {
           let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
-          webRequestBelongsTo = $("#webRequestBody"+index+"");
+          webRequestBelongsTo = $("#webRequestBody" + index + "");
           webRequestBelongsTo.append(webRequestSubtitle);
         }
       }
@@ -293,6 +295,75 @@ function handleResponse(message) {
 
     p.appendChild(content);
   }
+
+  //SiteMap classification
+  if (message.siteMap) {
+    let nameClass = '';
+    let webRequestCard = '';
+    for (let [index, row] of message.webRequestClassification.entries()) {
+      if (row.listsMatched && row.domainMapping) {
+        nameClass = 'alert-warning';
+        webRequestCard = $([
+          "<div class='col-sm-12'>",
+          "<div class='webRequestCard card m-1 " + nameClass + "'>",
+          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.domainMapping[0][1]) + ' : ' + sanitize(row.domainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.domainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.domainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.domainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
+          "<div class='card-body' id='webRequestBody" + index + "'>",
+          "</div>",
+          "</div>",
+          "</div>"
+        ].join("\n"));
+
+        webRequestList.append(webRequestCard);
+
+
+        for (let [lindex, list] of row.listsMatched.entries()) {
+          let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
+          // webRequestList.append(webRequestSubtitle);
+          webRequestBelongsTo = $("#webRequestBody" + index + "");
+          webRequestBelongsTo.append(webRequestSubtitle);
+        }
+
+      } else if (row.domainMapping) {
+        webRequestCard = $([
+          "<div class='col-sm-12'>",
+          "<div class='card m-1'>",
+          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.domainMapping[0][1]) + ' : ' + sanitize(row.domainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.domainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.domainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.domainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
+          "</div>",
+          "</div>"
+        ].join("\n"));
+
+        webRequestList.append(webRequestCard);
+
+      } else if (row.listsMatched) {
+        nameClass = 'alert-warning';
+        webRequestCard = $([
+          "<div class='col-sm-12'>",
+          "<div class='webRequestCard card m-1 " + nameClass + "'>",
+          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' >" + sanitize(row.webRequestResourceUrl) + "</a>",
+          "<div class='card-body' id='webRequestBody" + index + "'>",
+          "</div>",
+          "</div>",
+          "</div>"
+        ].join("\n"));
+
+        webRequestList.append(webRequestCard);
+
+        for (let [lindex, list] of row.listsMatched.entries()) {
+          let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
+          webRequestBelongsTo = $("#webRequestBody" + index + "");
+          webRequestBelongsTo.append(webRequestSubtitle);
+        }
+      }
+      webRequestList.append(webRequestCard);
+    }
+  } else {
+    let p = document.createElement("p");
+    let content = document.createTextNode("No cookies in this tab.");
+
+    p.appendChild(content);
+  }
+
+  console.log(message.siteMap);
 }
 
 /*

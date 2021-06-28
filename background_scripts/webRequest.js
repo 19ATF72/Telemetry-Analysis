@@ -175,7 +175,7 @@ class WebRequest {
   static async getWebRequestClassification(hostRowid) {
     let classifyWebRequest;
     let matchedValues = [];
-    let dommainMapping;
+    let domainMapping;
     try {
 
       let webRequestsForHostId = {
@@ -201,7 +201,7 @@ class WebRequest {
                             webRequestAccessCount: webRequest[9]};
         let url = psl.parse(matchedValue.webRequestResourceUrl);
 
-        dommainMapping = {
+        domainMapping = {
           'operation': "SELECT",
           'query': `t.name, ca.name, t.website_url, co.name, co.description, co.privacy_url, co.website_url, co.country, co.privacy_contact
                     FROM tracker_domains AS td
@@ -211,10 +211,10 @@ class WebRequest {
                     WHERE td.domain = ?`,
           'values': [url.domain],
         };
-        dommainMapping = await DynamicDao.externalAgnosticQuery(dommainMapping);
+        domainMapping = await DynamicDao.externalAgnosticQuery(domainMapping);
 
-        if(dommainMapping && dommainMapping.length) {
-          matchedValue.dommainMapping = dommainMapping[0].values;
+        if(domainMapping && domainMapping.length) {
+          matchedValue.domainMapping = domainMapping[0].values;
         }
 
 
