@@ -2,175 +2,178 @@
 
 <html lang=en>
 
-  <head>
-    <meta charset="utf-8">
-    <title>Telemetry Analysis popup</title>
-    <link rel="stylesheet" href="bootstrap.css">
-    <link rel="stylesheet" href="popup_styling.css">
-  </head>
+<head>
+  <meta charset="utf-8">
+  <title>Telemetry Analysis popup</title>
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="vis-network.css">
+  <link rel="stylesheet" href="popup_styling.css">
+</head>
 
-  <body>
-    <div class="card">
-      <div class="row g-0">
-        <div class="col-md-4">
-          <img src="../resources/boop.jpg" class="card-img-top logo" alt="..."></img>
-        </div>
-        <div class="col-md-8">
-            <div class="card-body">
-              <h3 class="card-title">Telemetry Analysis</h3>
-              <div class="card">
-                <div class="card-body">
-                  <h5 class="card-title" id="current-website-url">www.example.org</h5>
-                  <strong>Number of times visiting this site -
-                    <span id="visitCount" class="badge bg-primary">
-                      <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </span>
-                  </strong><br/>
-                  <strong>Number of cookies on the page -
-                    <span id="cookieCount" class="badge bg-primary">
-                      <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </span>
-                  </strong><br/>
-                  <strong>Number of requests on the page -
-                    <span id="requestCount" class="badge bg-primary">
-                      <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </span>
-                  </strong>
-                </div>
+<body>
+  <div class="card">
+
+    <div class="row row-accordion g-0">
+
+      <div class="col-md-12 p-3">
+
+        <div class="card">
+          <div class="row g-0">
+            <div class="col-md-5">
+              <img src="../resources/boop.jpg" style="height: auto; width: 80%; float: right;"></img>
+            </div>
+            <div class="col-md-7">
+              <div class="card-body">
+                <h3 class="card-title">Telemetry Analysis</h3>
+
+                <h5 class="card-title" id="current-website-url">www.example.org</h5>
+                <strong>Number of times visiting this site -
+                  <span id="visitCount" class="badge bg-primary">
+                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </span>
+                </strong><br />
+                <strong>Number of cookies on the page -
+                  <span id="cookieCount" class="badge bg-primary">
+                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </span>
+                </strong><br />
+                <strong>Number of requests on the page -
+                  <span id="requestCount" class="badge bg-primary">
+                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </span>
+                </strong>
+
               </div>
             </div>
-        </div>
-      </div>
-
-      <div class="row g-0">
-        <div class="col-md-12">
-          <div id="error-content" class="alert alert-primary d-none" role="alert">
-            A simple primary alert—check it out!
           </div>
         </div>
-      </div>
 
-      <div class="row row-accordion g-0">
-        <div class="col-md-12">
-
-          <div class="card text-center">
-            <div class="card-header">
-              Site map
-            </div>
-            <div class="card-body" id="site-map">
-              <!-- <h5 class="card-title">Special title treatment</h5>
-              <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-              <a href="#" class="btn btn-primary">Go somewhere</a> -->
-            </div>
-            <div class="card-footer text-muted">
-              2 days ago
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="row row-accordion g-0 mb-4">
-        <div class="col-md-12">
-
-          <div class="accordion" id="popup-choices">
-
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="first-party-header">
-                <button id="first-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#first-party-list" aria-expanded="false" aria-controls="first-party-list">
-                  <span>
-                    <span id="first-party-count" class="badge bg-secondary">
-                      <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </span> - 1st Party Cookies
-                  </span>
-                </button>
-              </h2>
-                <div id="first-party-list" class="accordion-collapse collapse" aria-labelledby="first-party-header" data-bs-parent="#popup-choices">
-                  <div class="accordion-body">
-                  </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="third-party-header">
-                <button id="third-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#third-party-list" aria-expanded="false" aria-controls="third-party-list">
-                  <span>
-                    <span id="third-party-count" class="badge bg-secondary">
-                      <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </span> - 3rd Party Cookies
-                  </span>
-                </button>
-              </h2>
-              <div id="third-party-list" class="accordion-collapse collapse" aria-labelledby="third-party-header" data-bs-parent="#popup-choices">
-                <div class="accordion-body">
-                </div>
-              </div>
-            </div>
-
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="popular-trackers-header">
-                <button id="popular-trackers-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#popular-trackers-list" aria-expanded="false" aria-controls="popular-trackers-list">
-                  <span>
-                    <span id="sites-with-cookies" class="badge bg-secondary">
-                      <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </span> - Other sites with these cookies
-                  </span>
-                </button>
-              </h2>
-              <div id="popular-trackers-list" class="accordion-collapse collapse" aria-labelledby="popular-trackers-header" data-bs-parent="#popup-choices">
-                <div class="accordion-body">
-                </div>
-              </div>
-            </div>
-
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="popular-trackers-header">
-                <button id="web-requests-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#web-requests-list" aria-expanded="false" aria-controls="popular-trackers-list">
-                  <span>
-                    <span id="web-requests-count" class="badge bg-secondary">
-                      <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                    </span> - Requests on site
-                  </span>
-                </button>
-              </h2>
-              <div id="web-requests-list" class="accordion-collapse collapse" aria-labelledby="popular-trackers-header" data-bs-parent="#popup-choices">
-                <div class="accordion-body">
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-
-      <div class="row g-0">
-        <div class="col-md-12 d-grid">
-          <a id="dashboard-button" class="btn btn-success">Go to dashboard</a>
-        </div>
       </div>
 
     </div>
 
+    <div class="row g-0">
+      <div class="col-md-12">
+        <div id="error-content" class="alert alert-primary d-none" role="alert">
+          A simple primary alert—check it out!
+        </div>
+      </div>
+    </div>
+
+    <div class="row row-accordion g-0">
+      <div class="col-md-12 px-3">
+
+        <div class="card text-center">
+          <div class="card-body">
+            <div id="siteMap"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="row row-accordion g-0">
+      <div class="col-md-12 px-3 pt-3">
+
+        <div class="accordion" id="popup-choices">
+
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="first-party-header">
+              <button id="first-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#first-party-list" aria-expanded="false" aria-controls="first-party-list">
+                <span>
+                  <span id="first-party-count" class="badge bg-secondary">
+                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </span> - 1st Party Cookies
+                </span>
+              </button>
+            </h2>
+            <div id="first-party-list" class="accordion-collapse collapse" aria-labelledby="first-party-header" data-bs-parent="#popup-choices">
+              <div class="accordion-body">
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="third-party-header">
+              <button id="third-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#third-party-list" aria-expanded="false" aria-controls="third-party-list">
+                <span>
+                  <span id="third-party-count" class="badge bg-secondary">
+                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </span> - 3rd Party Cookies
+                </span>
+              </button>
+            </h2>
+            <div id="third-party-list" class="accordion-collapse collapse" aria-labelledby="third-party-header" data-bs-parent="#popup-choices">
+              <div class="accordion-body">
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="popular-trackers-header">
+              <button id="popular-trackers-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#popular-trackers-list" aria-expanded="false" aria-controls="popular-trackers-list">
+                <span>
+                  <span id="sites-with-cookies" class="badge bg-secondary">
+                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </span> - Other sites with these cookies
+                </span>
+              </button>
+            </h2>
+            <div id="popular-trackers-list" class="accordion-collapse collapse" aria-labelledby="popular-trackers-header" data-bs-parent="#popup-choices">
+              <div class="accordion-body">
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="popular-trackers-header">
+              <button id="web-requests-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#web-requests-list" aria-expanded="false" aria-controls="popular-trackers-list">
+                <span>
+                  <span id="web-requests-count" class="badge bg-secondary">
+                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </span> - Requests on site
+                </span>
+              </button>
+            </h2>
+            <div id="web-requests-list" class="accordion-collapse collapse" aria-labelledby="popular-trackers-header" data-bs-parent="#popup-choices">
+              <div class="accordion-body">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <div class="row g-0">
+      <div class="col-md-12 d-grid p-3">
+        <a id="dashboard-button" class="btn btn-success">Go to dashboard</a>
+      </div>
+    </div>
+
+  </div>
+
   <script src="../background_scripts/libraries/jquery.min.js"></script>
   <script src="../background_scripts/libraries/bootstrap.min.js"></script>
   <script src="../background_scripts/libraries/bootstrap.bundle.min.js"></script>
+  <script src="../background_scripts/libraries/vis-network.min.js"></script>
   <script src="popup_controller.js"></script>
 
-  </body>
+</body>
 
 </html>

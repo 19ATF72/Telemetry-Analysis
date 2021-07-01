@@ -141,7 +141,7 @@ function handleResponse(message) {
     for (let [index, row] of message.cookieClassification.entries()) {
       let nameClass = '';
       if (row.nameClassification && row.sitesMatched) {
-        nameClass = 'alert-warning';
+        nameClass = 'alert-danger';
         card = $([
           "<div class='col-sm-4'>",
           "<div class='card m-1 " + nameClass + "'>",
@@ -154,7 +154,6 @@ function handleResponse(message) {
           "</div>",
           "</div>"
         ].join("\n"));
-        console.log(card);
       } else if (row.nameClassification) {
         nameClass = 'alert-warning';
         card = $([
@@ -168,7 +167,22 @@ function handleResponse(message) {
           "</div>",
           "</div>"
         ].join("\n"));
+      } else if (row.sitesMatched) {
+        nameClass = 'alert-warning';
+        card = $([
+          "<div class='col-sm-4'>",
+          "<div class='card m-1 " + nameClass + "'>",
+          "<a tabindex='" + index + "' id='card" + index + "' class='card-header'>" + row.cookieName + "</a>",
+          "<div class='card-body'>",
+          "<p class='card-subtitle text-muted'>" + convertEpochToSpecificTimezone(row.cookieExpiration, +0) + "</p>",
+          "<p class='card-subtitle'>" + row.cookieDomain + "</p> <br />",
+          "<p class='card-subtitle'>" + sanitize(row.sitesMatched[0][4]) + " - " + sanitize(row.sitesMatched[0][2]) + ", " + sanitize(row.sitesMatched[0][1]) + "</p>",
+          "</div>",
+          "</div>",
+          "</div>"
+        ].join("\n"));
       } else {
+        nameClass = 'alert-success';
         card = $([
           "<div class='col-sm-4'>",
           "<div class='card m-1 " + nameClass + "'>",
@@ -236,6 +250,9 @@ function handleResponse(message) {
     for (let [index, row] of message.webRequestClassification.entries()) {
       if (row.listsMatched && row.domainMapping) {
         nameClass = 'alert-warning';
+        if (row.listsMatched.length > 1) {
+          nameClass = 'alert-danger';
+        }
         webRequestCard = $([
           "<div class='col-sm-12'>",
           "<div class='webRequestCard card m-1 " + nameClass + "'>",
@@ -248,7 +265,6 @@ function handleResponse(message) {
 
         webRequestList.append(webRequestCard);
 
-
         for (let [lindex, list] of row.listsMatched.entries()) {
           let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
           // webRequestList.append(webRequestSubtitle);
@@ -259,7 +275,7 @@ function handleResponse(message) {
       } else if (row.domainMapping) {
         webRequestCard = $([
           "<div class='col-sm-12'>",
-          "<div class='card m-1'>",
+          "<div class='card m-1 alert-success'>",
           "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.domainMapping[0][1]) + ' : ' + sanitize(row.domainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.domainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.domainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.domainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
           "</div>",
           "</div>"
@@ -269,6 +285,9 @@ function handleResponse(message) {
 
       } else if (row.listsMatched) {
         nameClass = 'alert-warning';
+        if (row.listsMatched.length > 1) {
+          nameClass = 'alert-danger';
+        }
         webRequestCard = $([
           "<div class='col-sm-12'>",
           "<div class='webRequestCard card m-1 " + nameClass + "'>",
@@ -298,72 +317,259 @@ function handleResponse(message) {
 
   //SiteMap classification
   if (message.siteMap) {
-    let nameClass = '';
-    let webRequestCard = '';
-    for (let [index, row] of message.webRequestClassification.entries()) {
-      if (row.listsMatched && row.domainMapping) {
-        nameClass = 'alert-warning';
-        webRequestCard = $([
-          "<div class='col-sm-12'>",
-          "<div class='webRequestCard card m-1 " + nameClass + "'>",
-          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.domainMapping[0][1]) + ' : ' + sanitize(row.domainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.domainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.domainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.domainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
-          "<div class='card-body' id='webRequestBody" + index + "'>",
-          "</div>",
-          "</div>",
-          "</div>"
-        ].join("\n"));
+    let rootId = 'rootNode';
+    let nodes = new vis.DataSet();
+    let edges = new vis.DataSet();
 
-        webRequestList.append(webRequestCard);
-
-
-        for (let [lindex, list] of row.listsMatched.entries()) {
-          let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
-          // webRequestList.append(webRequestSubtitle);
-          webRequestBelongsTo = $("#webRequestBody" + index + "");
-          webRequestBelongsTo.append(webRequestSubtitle);
-        }
-
-      } else if (row.domainMapping) {
-        webRequestCard = $([
-          "<div class='col-sm-12'>",
-          "<div class='card m-1'>",
-          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' data-bs-placement='top' role='button' data-bs-container='#webRequest" + index + "' data-bs-toggle='popover' data-bs-trigger='hover' data-bs-html='true' title='" + sanitize(row.domainMapping[0][1]) + ' : ' + sanitize(row.domainMapping[0][0]) + "' data-bs-content='<b>Owned by:</b> " + sanitize(row.domainMapping[0][3]) + " <br /> <b>Description:</b>" + sanitize(row.domainMapping[0][4]) + " <br /> <b>GDPR Portal:</b> " + sanitize(row.domainMapping[0][5]) + "'>" + sanitize(row.webRequestResourceUrl) + "</a>",
-          "</div>",
-          "</div>"
-        ].join("\n"));
-
-        webRequestList.append(webRequestCard);
-
-      } else if (row.listsMatched) {
-        nameClass = 'alert-warning';
-        webRequestCard = $([
-          "<div class='col-sm-12'>",
-          "<div class='webRequestCard card m-1 " + nameClass + "'>",
-          "<a tabindex='" + index + "' id='webRequest" + index + "' class='card-header' >" + sanitize(row.webRequestResourceUrl) + "</a>",
-          "<div class='card-body' id='webRequestBody" + index + "'>",
-          "</div>",
-          "</div>",
-          "</div>"
-        ].join("\n"));
-
-        webRequestList.append(webRequestCard);
-
-        for (let [lindex, list] of row.listsMatched.entries()) {
-          let webRequestSubtitle = $(["<p class='card-subtitle tracking-list'><b>" + list[4] + "</b> - " + list[2] + ", <br /> " + list[1] + "</p>"].join("\n"));
-          webRequestBelongsTo = $("#webRequestBody" + index + "");
-          webRequestBelongsTo.append(webRequestSubtitle);
-        }
-      }
-      webRequestList.append(webRequestCard);
+    if (message.siteMap.firstColumn) {
+      nodes.add([{
+        id: rootId,
+        label: message.siteMap.firstColumn[1] + "\n" + message.siteMap.firstColumn[0],
+        title: "This site",
+        group: 'firstColumn',
+        level: 1,
+        // value: 10,
+      }]);
     }
-  } else {
+
+    if (message.siteMap.thirdColumn) {
+      for (let [index, row] of message.siteMap.thirdColumn.entries()) {
+        nodes.add([{
+          id: row.domain,
+          label: row.title + "\n" + row.domain,
+          title: "Country: "+ row.country + "\n" + row.privacyPolicy,
+          group: 'thirdColumn',
+          level: 3,
+          //value: row.count,
+          value: row.count * 2,
+        }]);
+      }
+    }
+
+    if (message.siteMap.fourthColumn.length > 0) {
+      for (let [index, row] of message.siteMap.fourthColumn.entries()) {
+        nodes.add([{
+          id: row.domain+row.parentDomain+row.title,
+          label: row.title + "\n" + row.domain,
+          group: 'fourthColumn',
+          level: 4,
+          //value: row.count,
+          value: row.count,
+        }]);
+
+        edges.add([{
+          from: row.domain+row.parentDomain+row.title,
+          to: row.parentDomain,
+          // label: "owned by",
+          title: "Also used by",
+          //value: row.count,
+          value: row.count,
+        }]);
+      }
+    }
+
+    if (message.siteMap.secondColumn) {
+      for (let [index, row] of message.siteMap.secondColumn.entries()) {
+        if (row.parentDomain) {
+          let parent = message.siteMap.thirdColumn.find(object => object["domain"] === row.parentDomain);
+
+          nodes.add([{
+            id: row.domain + row.parentDomain,
+            //label: row.title + "\n" + row.domain,
+            label: row.domain,
+            title: row.title+'\nPurposes: '+row.purposes,
+            group: 'secondColumn',
+            level: 2,
+            //value: row.count,
+            value: row.count + parent.count,
+          }]);
+
+          edges.add([{
+            from: row.domain + row.parentDomain,
+            to: row.parentDomain,
+            // label: "owned by",
+            title: "Parent organisation",
+            //value: row.count,
+            value: parent.count,
+          }]);
+
+          edges.add([{
+            from: rootId,
+            to: row.domain + row.parentDomain,
+            // label: "uses",
+            title: "Interacts with",
+            value: parent.count,
+          }]);
+
+        } else {
+
+          nodes.add([{
+            id: row.domain + row.parentDomain,
+            //label: row.title + "\n" + row.domain,
+            label: row.domain,
+            title: row.title+'\nPurposes: '+row.purposes,
+            group: 'secondColumn',
+            level: 2,
+            //value: row.count,
+            value: row.count + row.count,
+          }]);
+
+          edges.add([{
+            from: row.domain + row.parentDomain,
+            to: row.parentDomain,
+            // label: "owned by",
+            title: "Parent organisation",
+            //value: row.count,
+            value: row.count + row.count,
+          }]);
+
+          edges.add([{
+            from: rootId,
+            to: row.domain + row.parentDomain,
+            // label: "uses",
+            title: "Interacts with",
+            value: row.count + row.count,
+          }]);
+        }
+
+
+      }
+    }
+
+    // create a network
+    var container = document.getElementById("siteMap");
+    var data = {
+      nodes: nodes,
+      edges: edges,
+    };
+    let options = {
+      width: '100%',
+      //height: '400px',
+
+      // edges: {
+      //   color: 'red',
+      //   width: 2
+      // },
+
+      //nodes: {
+        // color: {
+        //   background: 'white',
+        //   border: 'red',
+        //   highlight: {
+        //     background: 'pink',
+        //     border: 'red'
+        //   }
+        // },
+        // shape: 'star',
+        // radius: 24
+        // radiusMax: 100,
+        // radiusMin: 10,
+      //},
+
+      // edges: {
+      //   smoothCurves: false,
+      // },
+      nodes: {
+        //physics: true,
+        mass: 2,
+      },
+
+      groups: {
+        fourthColumn: {
+          shape: 'dot',
+          // color: {
+          //   border: 'black',
+          //   background: 'white',
+          //   highlight: {
+          //     border: 'yellow',
+          //     background: 'orange'
+          //   }
+          // },
+          // fontColor: 'red',
+          // fontSize: 18
+        },
+
+        thirdColumn: {
+          shape: 'dot',
+          // color: {
+          //   border: 'black',
+          //   background: 'white',
+          //   highlight: {
+          //     border: 'yellow',
+          //     background: 'orange'
+          //   }
+          // },
+          // fontColor: 'red',
+          // fontSize: 18
+        },
+
+        secondColumn: {
+          shape: 'dot',
+          // color: {
+          //   border: 'black',
+          //   background: 'white',
+          //   highlight: {
+          //     border: 'yellow',
+          //     background: 'orange'
+          //   }
+          // },
+          // fontColor: 'red',
+          // fontSize: 18
+        },
+
+        firstColumn: {
+          shape: 'star',
+          // color: {
+          //   border: 'black',
+          //   background: 'white',
+          //   highlight: {
+          //     border: 'yellow',
+          //     background: 'orange'
+          //   }
+          // },
+          // fontColor: 'red',
+          // fontSize: 18
+        }
+      },
+
+      // hierarchicalLayout: {
+      //   nodeSpacing: 1500,
+      //   direction: "LR"
+      // },
+
+      // smoothCurves: true,
+
+    };
+
+    let network = new vis.Network(container, data, options);
+
+  }
+
+  //Node properties
+  //id, just make it an integer with count
+  //label - for the title
+  //title - text
+  //group - integer, string for column Number
+  //level - maybe
+  //value - sets the size, use the count property
+
+  //Edge properties
+  //from & to
+  //label - maybe "owned by" text
+  //title - extra "text"
+  //value - width of the connection, use retrievalSuccess
+
+  //Options properties
+  //groups - styles for groups
+  //hover - true
+  //smoothCurves - maybe true
+  else {
     let p = document.createElement("p");
-    let content = document.createTextNode("No cookies in this tab.");
+    let content = document.createTextNode("No site map for this tab.");
 
     p.appendChild(content);
   }
 
-  console.log(message.siteMap);
 }
 
 /*

@@ -401,6 +401,16 @@ class Site {
               count: 1,
             }
 
+            let purposeList = [];
+            for (var list of webRequest.listsMatched) {
+              if (purposeList.indexOf(list[4]) === -1) {
+                purposeList.push(list[4]);
+                secondColumnNode.count += 1;
+              }
+            }
+            secondColumnNode.title = parsedRequestDomain.sld;
+            secondColumnNode.purposes = purposeList.join(', ');
+
             //Domain mapping information
             if (webRequest.domainMapping) {
               parsedParentDomain = new URL(webRequest.domainMapping[0][6]);
@@ -419,17 +429,17 @@ class Site {
               thirdColumnNode.count += 1;
             }
             //Name classification information
-            else if (webRequest.listsMatched) {
-              let purposeList = [];
-              for (var list of webRequest.listsMatched) {
-                if (purposeList.indexOf(list[4]) === -1) {
-                  purposeList.push(list[4]);
-                  secondColumnNode.count += 1;
-                }
-              }
-              secondColumnNode.title = parsedRequestDomain.sld;
-              secondColumnNode.purposes = purposeList.join(', ');
-            }
+            // else if (webRequest.listsMatched) {
+            //   let purposeList = [];
+            //   for (var list of webRequest.listsMatched) {
+            //     if (purposeList.indexOf(list[4]) === -1) {
+            //       purposeList.push(list[4]);
+            //       secondColumnNode.count += 1;
+            //     }
+            //   }
+            //   secondColumnNode.title = parsedRequestDomain.sld;
+            //   secondColumnNode.purposes = purposeList.join(', ');
+            // }
 
             //Attempt to add if it exists
             if (thirdColumnNode.domain) {
@@ -484,11 +494,11 @@ class Site {
             secondColumnNode.count += 1;
 
             thirdColumnNode.title = cookie.domainMapping[3],
-              thirdColumnNode.description = cookie.domainMapping[4],
-              thirdColumnNode.privacyPolicy = cookie.domainMapping[5],
-              thirdColumnNode.domain = parsedParentDomain.domain,
-              thirdColumnNode.country = cookie.domainMapping[7],
-              thirdColumnNode.count += 1;
+            thirdColumnNode.description = cookie.domainMapping[4],
+            thirdColumnNode.privacyPolicy = cookie.domainMapping[5],
+            thirdColumnNode.domain = parsedParentDomain.domain,
+            thirdColumnNode.country = cookie.domainMapping[7],
+            thirdColumnNode.count += 1;
           }
           //Name classification information
           else if (cookie.nameClassification) {
@@ -501,11 +511,11 @@ class Site {
             secondColumnNode.count += 1;
 
             thirdColumnNode.title = cookie.nameClassification[7],
-              thirdColumnNode.description = 'Not available',
-              thirdColumnNode.privacyPolicy = cookie.nameClassification[8],
-              thirdColumnNode.domain = parsedParentDomain.domain,
-              thirdColumnNode.country = 'NA',
-              thirdColumnNode.count += 1;
+            thirdColumnNode.description = 'Not available',
+            thirdColumnNode.privacyPolicy = cookie.nameClassification[8],
+            thirdColumnNode.domain = parsedParentDomain.domain,
+            thirdColumnNode.country = 'NA',
+            thirdColumnNode.count += 1;
           }
 
           //Attempt to add if it exists
