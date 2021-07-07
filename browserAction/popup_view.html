@@ -19,31 +19,30 @@
 
         <div class="card">
           <div class="row g-0">
-            <div class="col-md-5">
-              <img src="../resources/boop.jpg" style="height: auto; width: 80%; float: right;"></img>
+            <div class="col-5">
+                <img src="../icons/elementor-brands.svg" id="taLogo"></img>
             </div>
-            <div class="col-md-7">
+            <div class="col-7">
               <div class="card-body">
                 <h3 class="card-title">Telemetry Analysis</h3>
-
                 <h5 class="card-title" id="current-website-url">www.example.org</h5>
                 <strong>Number of times visiting this site -
                   <span id="visitCount" class="badge bg-primary">
-                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                    <div class="spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </span>
                 </strong><br />
                 <strong>Number of cookies on the page -
                   <span id="cookieCount" class="badge bg-primary">
-                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                    <div class="spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </span>
                 </strong><br />
                 <strong>Number of requests on the page -
                   <span id="requestCount" class="badge bg-primary">
-                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                    <div class="spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </span>
@@ -71,7 +70,13 @@
 
         <div class="card text-center">
           <div class="card-body">
-            <div id="siteMap"></div>
+            <div id="siteMap">
+              <div class="d-flex justify-content-center modal-dialog-centered modal-dialog">
+                <div class="spinner-border" style="width: 3rem; height: 3rem" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -88,7 +93,7 @@
               <button id="first-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#first-party-list" aria-expanded="false" aria-controls="first-party-list">
                 <span>
                   <span id="first-party-count" class="badge bg-secondary">
-                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                    <div class="spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </span> - 1st Party Cookies
@@ -106,7 +111,7 @@
               <button id="third-party-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#third-party-list" aria-expanded="false" aria-controls="third-party-list">
                 <span>
                   <span id="third-party-count" class="badge bg-secondary">
-                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                    <div class="spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </span> - 3rd Party Cookies
@@ -124,7 +129,7 @@
               <button id="popular-trackers-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#popular-trackers-list" aria-expanded="false" aria-controls="popular-trackers-list">
                 <span>
                   <span id="sites-with-cookies" class="badge bg-secondary">
-                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                    <div class="spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </span> - Other sites with these cookies
@@ -142,7 +147,7 @@
               <button id="web-requests-button" class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#web-requests-list" aria-expanded="false" aria-controls="popular-trackers-list">
                 <span>
                   <span id="web-requests-count" class="badge bg-secondary">
-                    <div class="spinner-border spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
+                    <div class="spinner-border" role="status" style="width: 0.6rem; height: 0.6rem">
                       <span class="visually-hidden">Loading...</span>
                     </div>
                   </span> - Requests on site

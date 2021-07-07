@@ -328,7 +328,6 @@ function handleResponse(message) {
         title: "This site",
         group: 'firstColumn',
         level: 1,
-        // value: 10,
       }]);
     }
 
@@ -340,7 +339,6 @@ function handleResponse(message) {
           title: "Country: "+ row.country + "\n" + row.privacyPolicy,
           group: 'thirdColumn',
           level: 3,
-          //value: row.count,
           value: row.count * 2,
         }]);
       }
@@ -353,16 +351,13 @@ function handleResponse(message) {
           label: row.title + "\n" + row.domain,
           group: 'fourthColumn',
           level: 4,
-          //value: row.count,
           value: row.count,
         }]);
 
         edges.add([{
           from: row.domain+row.parentDomain+row.title,
           to: row.parentDomain,
-          // label: "owned by",
           title: "Also used by",
-          //value: row.count,
           value: row.count,
         }]);
       }
@@ -375,28 +370,23 @@ function handleResponse(message) {
 
           nodes.add([{
             id: row.domain + row.parentDomain,
-            //label: row.title + "\n" + row.domain,
             label: row.domain,
             title: row.title+'\nPurposes: '+row.purposes,
             group: 'secondColumn',
             level: 2,
-            //value: row.count,
             value: row.count + parent.count,
           }]);
 
           edges.add([{
             from: row.domain + row.parentDomain,
             to: row.parentDomain,
-            // label: "owned by",
             title: "Parent organisation",
-            //value: row.count,
             value: parent.count,
           }]);
 
           edges.add([{
             from: rootId,
             to: row.domain + row.parentDomain,
-            // label: "uses",
             title: "Interacts with",
             value: parent.count,
           }]);
@@ -405,28 +395,23 @@ function handleResponse(message) {
 
           nodes.add([{
             id: row.domain + row.parentDomain,
-            //label: row.title + "\n" + row.domain,
             label: row.domain,
             title: row.title+'\nPurposes: '+row.purposes,
             group: 'secondColumn',
             level: 2,
-            //value: row.count,
             value: row.count + row.count,
           }]);
 
           edges.add([{
             from: row.domain + row.parentDomain,
             to: row.parentDomain,
-            // label: "owned by",
             title: "Parent organisation",
-            //value: row.count,
             value: row.count + row.count,
           }]);
 
           edges.add([{
             from: rootId,
             to: row.domain + row.parentDomain,
-            // label: "uses",
             title: "Interacts with",
             value: row.count + row.count,
           }]);
@@ -444,126 +429,49 @@ function handleResponse(message) {
     };
     let options = {
       width: '100%',
-      //height: '400px',
+      autoResize: true,
 
-      // edges: {
-      //   color: 'red',
-      //   width: 2
-      // },
-
-      //nodes: {
-        // color: {
-        //   background: 'white',
-        //   border: 'red',
-        //   highlight: {
-        //     background: 'pink',
-        //     border: 'red'
-        //   }
-        // },
-        // shape: 'star',
-        // radius: 24
-        // radiusMax: 100,
-        // radiusMin: 10,
-      //},
-
-      // edges: {
-      //   smoothCurves: false,
-      // },
       nodes: {
-        //physics: true,
         mass: 2,
       },
 
       groups: {
         fourthColumn: {
           shape: 'dot',
-          // color: {
-          //   border: 'black',
-          //   background: 'white',
-          //   highlight: {
-          //     border: 'yellow',
-          //     background: 'orange'
-          //   }
-          // },
-          // fontColor: 'red',
-          // fontSize: 18
         },
 
         thirdColumn: {
           shape: 'dot',
-          // color: {
-          //   border: 'black',
-          //   background: 'white',
-          //   highlight: {
-          //     border: 'yellow',
-          //     background: 'orange'
-          //   }
-          // },
-          // fontColor: 'red',
-          // fontSize: 18
         },
 
         secondColumn: {
           shape: 'dot',
-          // color: {
-          //   border: 'black',
-          //   background: 'white',
-          //   highlight: {
-          //     border: 'yellow',
-          //     background: 'orange'
-          //   }
-          // },
-          // fontColor: 'red',
-          // fontSize: 18
         },
 
         firstColumn: {
           shape: 'star',
-          // color: {
-          //   border: 'black',
-          //   background: 'white',
-          //   highlight: {
-          //     border: 'yellow',
-          //     background: 'orange'
-          //   }
-          // },
-          // fontColor: 'red',
-          // fontSize: 18
         }
       },
 
-      // hierarchicalLayout: {
-      //   nodeSpacing: 1500,
-      //   direction: "LR"
-      // },
-
-      // smoothCurves: true,
-
     };
+
+    nodes_height = '300px';
+    if (nodes.length >= 10) {
+      nodes_height = '400px';
+    }
+    if (nodes.length >= 30) {
+      nodes_height = '600px';
+    }
+    if (nodes.length >= 60) {
+      nodes_height = '800px';
+    }
+
+    options.height = nodes_height;
+    $('#siteMap').css("height", options.height);
 
     let network = new vis.Network(container, data, options);
 
-  }
-
-  //Node properties
-  //id, just make it an integer with count
-  //label - for the title
-  //title - text
-  //group - integer, string for column Number
-  //level - maybe
-  //value - sets the size, use the count property
-
-  //Edge properties
-  //from & to
-  //label - maybe "owned by" text
-  //title - extra "text"
-  //value - width of the connection, use retrievalSuccess
-
-  //Options properties
-  //groups - styles for groups
-  //hover - true
-  //smoothCurves - maybe true
-  else {
+  } else {
     let p = document.createElement("p");
     let content = document.createTextNode("No site map for this tab.");
 
