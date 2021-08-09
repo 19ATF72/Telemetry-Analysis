@@ -28,7 +28,7 @@ With constelations forming over time
 ![detailed-breakdown](https://user-images.githubusercontent.com/54142191/128662570-91628b4b-fbc7-4e62-96d5-56a473f776d6.png)  
 And detailed relationship and purpose breakdown  
 
-It also includes a more detailed breakdown of the individual cookies / request and their classifications & understood purpose.  
+It also includes a more detailed breakdown of the individual elements and their classifications & understood purpose.  
 
 ![app-main-screen-cropped](https://user-images.githubusercontent.com/54142191/128663263-54cafa0e-b53c-4f43-8c8d-1fcd7b2acf12.png)  
 Including cookie & request counts
